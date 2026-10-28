@@ -1,0 +1,103 @@
+@import "tailwindcss";
+
+@theme {
+  --font-bebas: 'Bebas Neue', sans-serif;
+  --font-marker: 'Permanent Marker', cursive;
+  --font-sedgwick: 'Sedgwick Ave Display', cursive;
+  --font-archivo: 'Archivo', sans-serif;
+  --font-sans: 'Plus Jakarta Sans', sans-serif;
+
+  --color-sand: #f2e8df;
+  --color-sand-light: #faf5f0;
+  --color-sand-dark: #e8d9cc;
+  --color-surf-orange: #f05a2d;
+  --color-surf-navy: #06306b;
+  --color-surf-pink: #f29acb;
+  --color-surf-teal: #1f6f78;
+  --color-surf-mint: #cfe5d8;
+  --color-surf-yellow: #f8b839;
+}
+
+:root {
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color-scheme: light;
+  scroll-behavior: smooth;
+}
+
+body {
+  background-color: #f2e8df;
+  color: #06306b;
+  overflow-x: hidden;
+  margin: 0;
+  padding: 0;
+}
+
+.font-bebas {
+  font-family: 'Bebas Neue', sans-serif;
+}
+
+.font-marker {
+  font-family: 'Permanent Marker', cursive;
+}
+
+.font-sedgwick {
+  font-family: 'Sedgwick Ave Display', cursive;
+}
+
+.font-archivo {
+  font-family: 'Archivo', sans-serif;
+}
+
+/* Custom Desert Surf Camp aesthetic utilities */
+.ghost-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4rem, 14vw, 12rem);
+  line-height: 0.85;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(6, 48, 107, 0.15);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+  pointer-events: none;
+}
+
+.ghost-title-white {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(4rem, 14vw, 12rem);
+  line-height: 0.85;
+  color: transparent;
+  -webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  user-select: none;
+  pointer-events: none;
+}
+
+.stamp-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  transform: rotate(-3deg);
+  transition: transform 0.2s ease;
+}
+
+.stamp-badge:hover {
+  transform: rotate(0deg) scale(1.05);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f2e8df;
+}
+::-webkit-scrollbar-thumb {
+  background: #f05a2d;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #d44519;
+}

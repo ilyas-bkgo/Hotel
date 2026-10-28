@@ -1,0 +1,6 @@
+{
+  "name": "Résidence ISNI × Desert Surf Camp - Agadir",
+  "description": "Appart-Hôtel Résidence ISNI à Agadir : hébergement de charme, surf, excursions, petit-déjeuner et réservations synchronisées avec Google Sheets.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
