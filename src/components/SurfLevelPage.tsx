@@ -1,4 +1,5 @@
 import React from 'react';
+import { assetUrl } from '../utils/assets';
 import { ArrowLeft, ArrowRight, Check, Compass, ShieldCheck, Waves } from 'lucide-react';
 import { SurfLevel } from '../types';
 
@@ -58,7 +59,7 @@ export const SurfLevelPage: React.FC<SurfLevelPageProps> = ({ level, selected, o
   return (
     <div className="surf-level-page min-h-[80vh] bg-[#faf5f0]">
       <section className="relative overflow-hidden bg-[#06306b] text-white">
-        <img src="/assets/images/surf_lesson_taghazout_1793212942727.jpg" alt="Surfeurs en session sur la côte marocaine" className="image-drift absolute inset-0 h-full w-full object-cover opacity-35" />
+        <img src={assetUrl("/assets/images/surf_lesson_taghazout_1793212942727.jpg")} alt="Surfeurs en session sur la côte marocaine" className="image-drift absolute inset-0 h-full w-full object-cover opacity-35" />
         <div className="absolute inset-0 bg-gradient-to-r from-[#06306b]/95 via-[#06306b]/75 to-[#06306b]/20" />
         <div className="relative mx-auto max-w-7xl px-5 py-12 sm:px-8 sm:py-20 lg:py-28">
           <button onClick={onBack} className="mb-12 inline-flex items-center gap-2 text-sm font-bold text-white/85 transition hover:text-[#f29acb]">

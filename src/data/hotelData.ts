@@ -1,4 +1,5 @@
 import { RoomType, ActivityItem, BreakfastFormula } from '../types';
+import { assetUrl } from '../utils/assets';
 
 export const ROOMS: RoomType[] = [
   {
@@ -8,7 +9,7 @@ export const ROOMS: RoomType[] = [
     priceMAD: 320,
     description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
     capacity: 1,
-    image: '/assets/images/isni/twin-bedroom.jpg',
+    image: assetUrl('/assets/images/isni/twin-bedroom.jpg'),
     highlights: ['1 personne', 'Tarif par nuit', 'Confirmation par la réception']
   },
   {
@@ -18,7 +19,7 @@ export const ROOMS: RoomType[] = [
     priceMAD: 420,
     description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
     capacity: 2,
-    image: '/assets/images/isni/living-room.jpg',
+    image: assetUrl('/assets/images/isni/living-room.jpg'),
     highlights: ['2 personnes', 'Tarif par nuit', 'Confirmation par la réception']
   },
   {
@@ -28,7 +29,7 @@ export const ROOMS: RoomType[] = [
     priceMAD: 480,
     description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
     capacity: 3,
-    image: '/assets/images/isni/family-suite.jpg',
+    image: assetUrl('/assets/images/isni/family-suite.jpg'),
     highlights: ['3 personnes', 'Tarif par nuit', 'Confirmation par la réception']
   },
   {
@@ -38,49 +39,49 @@ export const ROOMS: RoomType[] = [
     priceMAD: 520,
     description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
     capacity: 4,
-    image: '/assets/images/isni/family-suite.jpg',
+    image: assetUrl('/assets/images/isni/family-suite.jpg'),
     highlights: ['4 personnes', 'Tarif par nuit', 'Confirmation par la réception']
   }
 ];
 
 export const PROPERTY_GALLERY = [
-  { src: '/assets/images/isni/living-room.jpg', alt: 'Salon aménagé avec canapé et table basse', label: 'Salon' },
-  { src: '/assets/images/isni/twin-bedroom.jpg', alt: 'Chambre avec deux lits et linge de maison', label: 'Chambre' },
-  { src: '/assets/images/isni/kitchenette.jpg', alt: 'Coin équipé avec téléviseur et bouilloire', label: 'Équipements' },
-  { src: '/assets/images/isni/family-suite.jpg', alt: 'Espace salon et salle à manger de la suite', label: 'Suite' },
-  { src: '/assets/images/isni/dining-room.jpg', alt: 'Table dressée dans la salle de restauration', label: 'Restauration' },
-  { src: '/assets/images/isni/balcony.jpg', alt: 'Vue depuis un balcon de la résidence', label: 'Vue' },
+  { src: assetUrl('/assets/images/isni/living-room.jpg'), alt: 'Salon aménagé avec canapé et table basse', label: 'Salon' },
+  { src: assetUrl('/assets/images/isni/twin-bedroom.jpg'), alt: 'Chambre avec deux lits et linge de maison', label: 'Chambre' },
+  { src: assetUrl('/assets/images/isni/kitchenette.jpg'), alt: 'Coin équipé avec téléviseur et bouilloire', label: 'Équipements' },
+  { src: assetUrl('/assets/images/isni/family-suite.jpg'), alt: 'Espace salon et salle à manger de la suite', label: 'Suite' },
+  { src: assetUrl('/assets/images/isni/dining-room.jpg'), alt: 'Table dressée dans la salle de restauration', label: 'Restauration' },
+  { src: assetUrl('/assets/images/isni/balcony.jpg'), alt: 'Vue depuis un balcon de la résidence', label: 'Vue' },
 ];
 
 export const ACCOMMODATION_DETAILS = [
   {
     title: 'Studio Confort',
     area: '36 m²',
-    image: '/assets/images/isni/kitchenette.jpg',
+    image: assetUrl('/assets/images/isni/kitchenette.jpg'),
     description: 'Pensé pour allier confort et fonctionnalité, le studio offre une vue agréable sur le jardin Ibn Zaidoun. Il comprend un grand lit, deux canapés-lits et une kitchenette entièrement équipée. Salle de bain privée avec douche et WC, Wi-Fi gratuit.',
   },
   {
     title: 'Studio quadruple · vue jardin',
     area: '36 m²',
-    image: '/assets/images/isni/twin-bedroom.jpg',
+    image: assetUrl('/assets/images/isni/twin-bedroom.jpg'),
     description: 'Une configuration adaptée aux familles ou aux amis, avec trois lits simples et deux canapés-lits. Le studio dispose d’une kitchenette équipée, d’une salle de bain privée avec douche et WC, du Wi-Fi gratuit et d’un balcon avec vue sur le jardin Ibn Zaidoun.',
   },
   {
     title: 'Chambre quadruple avec balcon',
     area: '36 m²',
-    image: '/assets/images/isni/family-suite.jpg',
+    image: assetUrl('/assets/images/isni/family-suite.jpg'),
     description: 'Peut accueillir jusqu’à quatre personnes avec deux lits simples et deux canapés-lits. Elle comprend une kitchenette équipée, une salle de bain privée avec douche et WC, un balcon et le Wi-Fi gratuit. La vue jardin dépend de la disponibilité.',
   },
   {
     title: 'Appartement deux chambres',
     area: '55 m²',
-    image: '/assets/images/isni/twin-bedroom.jpg',
+    image: assetUrl('/assets/images/isni/twin-bedroom.jpg'),
     description: 'Un hébergement spacieux pour les familles ou les groupes, avec deux chambres séparées, un salon, trois lits simples, un lit double et deux canapés-lits. Kitchenette équipée, salle de bain privée avec douche et WC, Wi-Fi gratuit. Balcon avec vue sur le jardin selon disponibilité.',
   },
   {
     title: 'Appartement une chambre',
     area: '36 m²',
-    image: '/assets/images/isni/living-room.jpg',
+    image: assetUrl('/assets/images/isni/living-room.jpg'),
     description: 'Un espace fonctionnel avec deux lits simples et deux canapés-lits, une kitchenette équipée, une salle de bain privée avec douche et WC et le Wi-Fi gratuit. Balcon avec vue sur le jardin Ibn Zaidoun selon disponibilité.',
   },
 ];

@@ -1,4 +1,5 @@
 import React from 'react';
+import { assetUrl } from '../utils/assets';
 import { ArrowRight, Waves } from 'lucide-react';
 import { SurfLevel } from '../types';
 
@@ -18,7 +19,7 @@ export const ActivitiesSection: React.FC<ActivitiesSectionProps> = ({ onOpenSurf
 
       <article className="mx-auto grid max-w-6xl overflow-hidden rounded-[2rem] border-4 border-white bg-white shadow-2xl lg:grid-cols-[.95fr_1.05fr]">
         <div className="image-drift-frame group relative min-h-[350px] overflow-hidden lg:min-h-[570px]">
-          <img src="/assets/images/surf_lesson_taghazout_1793212942727.jpg" alt="Surfeurs en session sur la côte marocaine" className="image-drift absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <img src={assetUrl("/assets/images/surf_lesson_taghazout_1793212942727.jpg")} alt="Surfeurs en session sur la côte marocaine" className="image-drift absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#06306b]/90 via-[#06306b]/15 to-transparent" />
           <span className="stamp-badge absolute left-6 top-6 border-2 border-white bg-[#f05a2d] px-5 py-2 font-bebas text-lg text-white shadow-lg">RÉSIDENCE ISNI · AGADIR</span>
           <div className="absolute bottom-7 left-7 text-white"><Waves className="mb-3 h-8 w-8 text-[#f29acb]" /><p className="mb-1 font-marker text-sm uppercase tracking-widest text-[#f29acb]">Taghazout</p><h3 className="font-bebas text-5xl leading-[.9] sm:text-6xl">CHOISISSEZ<br />VOTRE NIVEAU</h3></div>

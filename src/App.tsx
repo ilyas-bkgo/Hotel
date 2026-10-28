@@ -15,9 +15,16 @@ import { HOTEL_INFO } from './data/hotelData';
 import { SurfLevel } from './types';
 
 export default function App() {
+  useEffect(() => {
+    const themeUri = (window as Window & { isniData?: { themeUri?: string } }).isniData?.themeUri;
+    if (themeUri) {
+      document.documentElement.style.setProperty('--isni-surf-photo', `url("${themeUri}/assets/images/surf_lesson_taghazout_1793212942727.jpg")`);
+    }
+  }, []);
   const [surfLevel, setSurfLevel] = useState<SurfLevel | null>(() => {
     const match = window.location.hash.match(/^#surf-(debutant|intermediaire)$/);
-    return match ? match[1] as SurfLevel : null;
+    const pathMatch = window.location.pathname.match(/surf-(debutant|intermediaire)/);
+    return (match?.[1] ?? pathMatch?.[1] ?? null) as SurfLevel | null;
   });
 
   useEffect(() => {
@@ -61,7 +68,8 @@ export default function App() {
   useEffect(() => {
     const syncSurfRoute = () => {
       const match = window.location.hash.match(/^#surf-(debutant|intermediaire)$/);
-      setSurfLevel(match ? match[1] as SurfLevel : null);
+      const pathMatch = window.location.pathname.match(/surf-(debutant|intermediaire)/);
+      setSurfLevel((match?.[1] ?? pathMatch?.[1] ?? null) as SurfLevel | null);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
     window.addEventListener('popstate', syncSurfRoute);
@@ -79,7 +87,8 @@ export default function App() {
   };
 
   const closeSurfPage = () => {
-    window.history.pushState({}, '', window.location.pathname + window.location.search);
+    const homeUrl = (window as Window & { isniData?: { homeUrl?: string } }).isniData?.homeUrl || `${window.location.origin}/`;
+    window.history.pushState({}, '', homeUrl);
     setSurfLevel(null);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };

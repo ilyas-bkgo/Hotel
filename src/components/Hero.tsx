@@ -1,4 +1,5 @@
 import React from 'react';
+import { assetUrl } from '../utils/assets';
 import { Calendar, Compass, MapPin, ArrowRight } from 'lucide-react';
 import { ROOMS } from '../data/hotelData';
 
@@ -105,7 +106,7 @@ export const Hero: React.FC<HeroProps> = ({ onReserve, onExploreRooms }) => {
             {/* Photo Card with Desert Surf Camp border */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#06306b] group">
               <img
-                src="/assets/images/isni/family-suite.jpg"
+                src={assetUrl("/assets/images/isni/family-suite.jpg")}
                 alt="Salon et coin repas d’une suite de la Résidence ISNI"
                 className="image-drift h-[380px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[460px]"
                 referrerPolicy="no-referrer"

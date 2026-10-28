@@ -120,7 +120,8 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       return;
     }
 
-    if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(googleSheetUrl)) {
+    const wpConfig = (window as Window & { isniData?: { ajaxUrl: string; nonce: string } }).isniData;
+    if (!wpConfig && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(googleSheetUrl)) {
       setSubmissionError('La réservation en ligne n’est pas encore connectée. Contactez-nous via WhatsApp pour envoyer votre demande.');
       return;
     }
@@ -141,6 +142,36 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     };
 
     try {
+      if (wpConfig) {
+        const payload = new FormData();
+        payload.append('action', 'isni_book');
+        payload.append('nonce', wpConfig.nonce);
+        payload.append('website', form.websiteHoneypot);
+        payload.append('full_name', form.fullName);
+        payload.append('email', form.email);
+        payload.append('phone', form.phone);
+        payload.append('room_type', selectedRoom.code);
+        payload.append('check_in', form.checkIn);
+        payload.append('check_out', form.checkOut);
+        payload.append('guests', String(form.guests));
+        payload.append('breakfast', form.breakfastCode);
+        payload.append('activities', selectedActivities.map((activity) => activity.title).join(', '));
+        payload.append('notes', form.notes);
+        const response = await fetch(wpConfig.ajaxUrl, { method: 'POST', body: payload, credentials: 'same-origin' });
+        const result = await response.json();
+        if (!response.ok || !result.success) {
+          throw new Error(result?.data?.message || 'La demande n’a pas pu être enregistrée.');
+        }
+        newRecord.id = result.data.bookingId || bookingId;
+        newRecord.totalPriceMAD = Number(result.data.totalMAD) || totalStayPrice;
+        confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#f05a2d', '#06306b', '#f29acb', '#1f6f78'] });
+        setSubmissionSuccess(newRecord);
+        if (result.data.sheetSyncWarning) {
+          setSubmissionError('La demande est enregistrée dans WordPress, mais la synchronisation Google Sheets reste à vérifier.');
+        }
+        return;
+      }
+
       // Apps Script accepts this simple cross-origin POST, but no-cors makes its
       // response unreadable. The UI must therefore describe this as submitted,
       // never as a verified spreadsheet write or a confirmed booking.
@@ -181,8 +212,8 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       });
 
       setSubmissionSuccess(newRecord);
-    } catch (err: any) {
-      setSubmissionError('Une erreur est survenue lors de l’envoi. Veuillez réessayer ou utiliser WhatsApp.');
+    } catch (err: unknown) {
+      setSubmissionError(err instanceof Error ? err.message : 'Une erreur est survenue lors de l’envoi. Veuillez réessayer ou utiliser WhatsApp.');
     } finally {
       setIsSubmitting(false);
     }
@@ -218,7 +249,8 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       (notes ? `• Demandes particulières : ${notes}\n` : '• Demandes particulières : aucune\n') +
       `\nMerci de me confirmer la disponibilité !`
     );
-    const cleanNum = HOTEL_INFO.whatsapp.replace(/[^0-9]/g, '');
+    const configuredWhatsApp = (window as Window & { isniData?: { whatsapp?: string } }).isniData?.whatsapp || HOTEL_INFO.whatsapp;
+    const cleanNum = configuredWhatsApp.replace(/[^0-9]/g, '');
     return `https://wa.me/${cleanNum}?text=${text}`;
   };
 
@@ -266,7 +298,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             </div>
 
             <p className="font-sans text-sm sm:text-base text-[#06306b]/80 mb-6 leading-relaxed">
-              Merci <strong className="text-[#06306b]">{submissionSuccess.fullName}</strong> ! Votre demande pour <strong>{ROOMS.find(room => room.code === submissionSuccess.roomCode)?.name || submissionSuccess.roomCode}</strong> du <strong>{submissionSuccess.checkIn}</strong> au <strong>{submissionSuccess.checkOut}</strong> ({submissionSuccess.nights} nuits) a été envoyée à Google Sheets. La réservation reste en attente de confirmation par notre équipe.
+              Merci <strong className="text-[#06306b]">{submissionSuccess.fullName}</strong> ! Votre demande pour <strong>{ROOMS.find(room => room.code === submissionSuccess.roomCode)?.name || submissionSuccess.roomCode}</strong> du <strong>{submissionSuccess.checkIn}</strong> au <strong>{submissionSuccess.checkOut}</strong> ({submissionSuccess.nights} nuits) a été enregistrée. La réservation reste en attente de confirmation par notre équipe.
             </p>
 
             {submissionSuccess.activities.length > 0 && (
