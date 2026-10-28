@@ -773,7 +773,7 @@ get_header(); ?>
             </p>
         </div>
 
-        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/breakfast-menu.png'); ?>" alt="Carte des formules petit-déjeuner" style="display:block;width:min(100%,760px);height:auto;margin:0 auto 32px;border-radius:16px;">
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/breakfast-menu.webp'); ?>" alt="Carte des formules petit-déjeuner" style="display:block;width:min(100%,760px);height:auto;margin:0 auto 32px;border-radius:16px;">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;">
             <?php
             $bf_list = isni_get_breakfast();
@@ -1446,8 +1446,7 @@ export async function generateWordpressThemeZip(): Promise<Blob> {
   });
 
   const assetPaths = [
-    'assets/breakfast-menu.png',
-    'assets/images/surf_excursion_sahara_1793212942120.jpg',
+    'assets/breakfast-menu.webp',
     'assets/images/surf_lesson_taghazout_1793212942727.jpg',
     'assets/images/isni/living-room.jpg',
     'assets/images/isni/kitchenette.jpg',

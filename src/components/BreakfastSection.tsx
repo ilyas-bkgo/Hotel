@@ -58,7 +58,7 @@ export const BreakfastSection: React.FC<BreakfastSectionProps> = ({
 
           <div className="relative overflow-hidden bg-[#e8d9cc]">
             <img
-              src="/assets/breakfast-menu.png"
+              src="/assets/breakfast-menu.webp"
               alt="Carte Petit-Déjeuner Apparts-Hôtel Résidence ISNI"
               className="w-full h-auto object-contain max-h-[600px] mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
               referrerPolicy="no-referrer"
