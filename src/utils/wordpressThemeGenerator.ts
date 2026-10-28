@@ -174,14 +174,49 @@ function isni_enqueue_scripts() {
 }
 add_action('wp_enqueue_scripts', 'isni_enqueue_scripts');
 
-function isni_create_surf_pages() {
-    foreach (array('debutant' => 'Surf Débutant', 'intermediaire' => 'Surf Intermédiaire') as $slug => $title) {
-        if (!get_page_by_path('surf-' . $slug)) {
-            wp_insert_post(array('post_type' => 'page', 'post_status' => 'publish', 'post_title' => $title, 'post_name' => 'surf-' . $slug));
+function isni_ensure_surf_pages() {
+    static $checked = false;
+    if ($checked) return;
+    $checked = true;
+    $rewrite_rules_changed = false;
+    $pages = array(
+        'debutant' => array('Surf Débutant', 'page-surf-debutant.php'),
+        'intermediaire' => array('Surf Intermédiaire', 'page-surf-intermediaire.php')
+    );
+
+    foreach ($pages as $level => $settings) {
+        $slug = 'surf-' . $level;
+        $page = get_page_by_path($slug, OBJECT, 'page');
+        if (!$page) {
+            $page_id = wp_insert_post(array(
+                'post_type' => 'page',
+                'post_status' => 'publish',
+                'post_title' => $settings[0],
+                'post_name' => $slug
+            ), true);
+            if (is_wp_error($page_id)) continue;
+            $page = get_post($page_id);
+            $rewrite_rules_changed = true;
+        }
+
+        if ($page && get_post_meta($page->ID, '_wp_page_template', true) !== $settings[1]) {
+            update_post_meta($page->ID, '_wp_page_template', $settings[1]);
         }
     }
+
+    if ($rewrite_rules_changed) flush_rewrite_rules(false);
 }
-add_action('after_switch_theme', 'isni_create_surf_pages');
+add_action('after_switch_theme', 'isni_ensure_surf_pages');
+function isni_admin_ensure_surf_pages() {
+    if (current_user_can('edit_pages')) isni_ensure_surf_pages();
+}
+add_action('admin_init', 'isni_admin_ensure_surf_pages', 20);
+
+function isni_get_surf_page_url($level) {
+    $slug = 'surf-' . sanitize_title($level);
+    $page = get_page_by_path($slug, OBJECT, 'page');
+    return $page ? get_permalink($page) : home_url('/#activites');
+}
 
 // 2. Custom Post Type: isni_booking
 function isni_register_cpt_booking() {
@@ -513,8 +548,8 @@ add_action('wp_ajax_nopriv_isni_book', 'isni_ajax_book');
             <div class="isni-surf-menu" style="position:relative;display:inline-flex;align-items:center;gap:6px;color:#06306b;font-weight:600;font-size:.95rem;cursor:pointer;">
                 <span tabindex="0">Surf⌄</span>
                 <div style="display:none;position:absolute;top:100%;left:0;min-width:180px;padding:8px;background:#fff;border-radius:12px;box-shadow:0 12px 28px rgba(6,48,107,.18);">
-                    <a href="<?php echo esc_url(home_url('/surf-debutant/')); ?>" style="display:block;padding:10px 12px;color:#06306b;text-decoration:none;">Débutant</a>
-                    <a href="<?php echo esc_url(home_url('/surf-intermediaire/')); ?>" style="display:block;padding:10px 12px;color:#06306b;text-decoration:none;">Intermédiaire</a>
+                    <a href="<?php echo esc_url(isni_get_surf_page_url('debutant')); ?>" style="display:block;padding:10px 12px;color:#06306b;text-decoration:none;">Débutant</a>
+                    <a href="<?php echo esc_url(isni_get_surf_page_url('intermediaire')); ?>" style="display:block;padding:10px 12px;color:#06306b;text-decoration:none;">Intermédiaire</a>
                 </div>
             </div>
             <a href="<?php echo esc_url(home_url('/#petit-dejeuner')); ?>" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Petit-Déjeuner</a>
@@ -754,8 +789,8 @@ get_header(); ?>
                 <p style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#f29acb;">TARIF À CONFIRMER AVEC LA RÉCEPTION</p>
                 <p style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#f29acb;">CHOISISSEZ VOTRE NIVEAU</p>
                 <div style="display:flex;flex-wrap:wrap;gap:12px;">
-                    <a class="btn-primary" href="<?php echo esc_url(home_url('/surf-debutant/')); ?>">Débutant · Découvrir le parcours</a>
-                    <a class="btn-primary" href="<?php echo esc_url(home_url('/surf-intermediaire/')); ?>">Intermédiaire · Voir le parcours</a>
+                    <a class="btn-primary" href="<?php echo esc_url(isni_get_surf_page_url('debutant')); ?>">Débutant · Découvrir le parcours</a>
+                    <a class="btn-primary" href="<?php echo esc_url(isni_get_surf_page_url('intermediaire')); ?>">Intermédiaire · Voir le parcours</a>
                 </div>
             </div>
         </div>
@@ -801,6 +836,22 @@ get_header(); ?>
                 </button>
             </div>
             <?php endforeach; ?>
+        </div>
+    </section>
+
+    <section id="a-savoir" style="padding:72px 24px;background:#f2e8df;">
+        <div style="max-width:1280px;margin:0 auto;">
+            <div style="text-align:center;margin-bottom:36px;">
+                <span style="font-family:'Permanent Marker',cursive;color:#f05a2d;">Informations pratiques</span>
+                <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.5rem,5vw,4rem);color:#06306b;margin:8px 0;">À SAVOIR AVANT VOTRE SÉJOUR</h2>
+                <p style="max-width:680px;margin:0 auto;color:#4a5568;line-height:1.65;">Les tarifs ci-dessous reprennent le barème fourni. La disponibilité et la sortie surf sont à confirmer par la réception.</p>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;">
+                <article class="card-panel" style="padding:24px;"><span style="font-family:'Bebas Neue',sans-serif;color:#f05a2d;font-size:2rem;">01</span><h3 style="color:#06306b;margin:6px 0;">Chambres pour 1 à 4 personnes</h3><p style="color:#4a5568;line-height:1.6;">La résidence propose 29 chambres et appartements. Choisissez le tarif correspondant au nombre de voyageurs.</p></article>
+                <article class="card-panel" style="padding:24px;"><span style="font-family:'Bebas Neue',sans-serif;color:#1f6f78;font-size:2rem;">02</span><h3 style="color:#06306b;margin:6px 0;">Tarifs par nuit</h3><p style="color:#4a5568;line-height:1.8;">Simple · 320 MAD<br>Double · 420 MAD<br>Triple · 480 MAD<br>Quadruple · 520 MAD</p></article>
+                <article class="card-panel" style="padding:24px;"><span style="font-family:'Bebas Neue',sans-serif;color:#f05a2d;font-size:2rem;">03</span><h3 style="color:#06306b;margin:6px 0;">Petit-déjeuner en option</h3><p style="color:#4a5568;line-height:1.6;">Express · 30 DH ; Continental ou Beldi · 35 DH par personne et par jour.</p></article>
+                <article class="card-panel" style="padding:24px;"><span style="font-family:'Bebas Neue',sans-serif;color:#06306b;font-size:2rem;">04</span><h3 style="color:#06306b;margin:6px 0;">Surf à Taghazout sur demande</h3><p style="color:#4a5568;line-height:1.6;">Transport, planche, combinaison, moniteur et déjeuner sont annoncés. Tarif et disponibilité à confirmer.</p></article>
+            </div>
         </div>
     </section>
 
@@ -858,8 +909,12 @@ get_header(); ?>
     const focus = beginner
       ? ['Sécurité et repères dans l’eau','Équilibre et position sur la planche','Rame et redressement','Découverte des premières vagues']
       : ['Placement et lecture des vagues','Timing et rame','Prise de vague et direction','Objectifs adaptés au niveau confirmé sur place'];
+    const templateName = beginner ? 'Surf Débutant' : 'Surf Intermédiaire';
     return `<?php
-/** Auto-selected template for the ${title} page. */
+/**
+ * Template Name: ${templateName}
+ * Template Post Type: page
+ */
 get_header(); ?>
 <main style="background:#faf5f0;color:#06306b;">
 <section style="position:relative;overflow:hidden;background:#06306b;color:white;min-height:530px;display:flex;align-items:center;">
@@ -879,13 +934,13 @@ ${steps.map(([number, label, description]) => `<article class="card-panel" style
 </div>
 <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;margin-top:34px;">
 <div style="background:#f2e8df;border-radius:24px;padding:30px;"><h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;">POINTS À ABORDER</h3><ul style="line-height:2;">${focus.map(item => `<li>${item}</li>`).join('')}</ul></div>
-<div style="background:#fff;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(6,48,107,.08);"><h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;">SORTIE SUR DEMANDE</h3><p style="line-height:1.7;color:#4a5568;">L’affiche ISNI annonce le transport vers les spots, la planche, la combinaison, un moniteur et le déjeuner. Le tarif, les horaires, le déroulement et la disponibilité sont à confirmer par la résidence.</p><a class="btn-primary" href="<?php echo esc_url(home_url('/?isni_activity=surf-${level}#reservation')); ?>">Ajouter à ma demande · Tarif à confirmer</a><p style="font-size:.82rem;color:#718096;margin-top:12px;">Le montant surf n’est pas inclus dans l’estimation en ligne.</p></div>
+<div style="background:#fff;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(6,48,107,.08);"><h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;">SORTIE SUR DEMANDE</h3><p style="line-height:1.7;color:#4a5568;">L’affiche ISNI annonce le transport vers les spots, la planche, la combinaison, un moniteur et le déjeuner. Le tarif, les horaires, le déroulement et la disponibilité sont à confirmer par la résidence.</p><a class="btn-primary" href="<?php echo esc_url(add_query_arg('isni_activity', 'surf-${level}', home_url('/'))); ?>#reservation">Ajouter à ma demande · Tarif à confirmer</a><p style="font-size:.82rem;color:#718096;margin-top:12px;">Le montant surf n’est pas inclus dans l’estimation en ligne.</p></div>
 </div></section>
 <section style="background:#fff;padding:72px 24px;"><div style="max-width:1200px;margin:0 auto;"><p style="font-family:'Permanent Marker',cursive;color:#f05a2d;">QUESTIONS FRÉQUENTES</p><h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,5vw,4.5rem);">AVANT DE PARTIR SURFER</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
 <div class="card-panel" style="padding:24px;"><h3>Le matériel est-il inclus ?</h3><p style="color:#4a5568;line-height:1.6;">L’affiche indique planche et combinaison incluses. Les détails sont à confirmer avec la réception.</p></div>
 <div class="card-panel" style="padding:24px;"><h3>Quel est le tarif ?</h3><p style="color:#4a5568;line-height:1.6;">Aucun tarif par niveau n’a été fourni. La réception confirmera le prix et la disponibilité.</p></div>
 <div class="card-panel" style="padding:24px;"><h3>Le parcours est-il fixe ?</h3><p style="color:#4a5568;line-height:1.6;">Les points présentés sont des objectifs possibles, pas un programme garanti. Le contenu est à confirmer avec la résidence et le moniteur.</p></div>
-</div><p style="margin-top:28px;"><a href="<?php echo esc_url(home_url('/surf-${beginner ? 'intermediaire' : 'debutant'}/')); ?>" style="color:#1f6f78;font-weight:700;">Découvrir le niveau ${beginner ? 'intermédiaire' : 'débutant'} →</a></p></div></section>
+</div><p style="margin-top:28px;"><a href="<?php echo esc_url(isni_get_surf_page_url('${beginner ? 'intermediaire' : 'debutant'}')); ?>" style="color:#1f6f78;font-weight:700;">Découvrir le niveau ${beginner ? 'intermédiaire' : 'débutant'} →</a></p></div></section>
 </main>
 <?php get_footer(); ?>`;
   };
