@@ -1,3 +1,5 @@
+export type SurfLevel = 'debutant' | 'intermediaire';
+
 export interface RoomType {
   code: string;
   name: string;
@@ -35,6 +37,7 @@ export interface BookingFormState {
   roomCode: string;
   guests: number;
   breakfastCode: string;
+  activities: string[];
   fullName: string;
   email: string;
   phone: string;

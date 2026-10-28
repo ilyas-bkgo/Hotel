@@ -6,36 +6,36 @@ export const WhySection: React.FC = () => {
     {
       num: '01',
       title: 'Emplacement Central à Agadir',
-      subtitle: 'Avenue Allal Ben Abdellah',
-      desc: 'Idéalement situé au cœur de la ville, à quelques minutes de la marina, de la corniche et des principaux axes vers les célèbres spots de surf de la côte atlantique.',
+      subtitle: 'Avenue Allal Ben Abdellah, Agadir',
+      desc: 'À proximité des restaurants, commerces, cafés, musées et principales attractions de la ville.',
       tag: 'Cœur de Ville',
       color: 'text-[#f05a2d]',
       borderColor: 'border-[#f05a2d]/30',
     },
     {
       num: '02',
-      title: 'Esprit Surf Camp & Râtelier',
-      subtitle: 'Pensé pour les passionnés de glisse',
-      desc: 'Stockage dédié et sécurisé pour vos planches de surf, douches de rinçage à l’eau douce, conseils quotidiens sur les marées et sessions collectives.',
-      tag: 'Surfers Welcome',
+      title: 'Une sortie surf à Taghazout',
+      subtitle: 'Premiers pas Surf',
+      desc: 'Une excursion avec session de surf, transport vers les spots, matériel, moniteur et déjeuner. Tarif et disponibilité à confirmer par la réception.',
+      tag: 'Sur demande',
       color: 'text-[#f29acb]',
       borderColor: 'border-[#f29acb]/40',
     },
     {
       num: '03',
-      title: 'Petit-Déjeuner Beldi Frais',
+      title: 'Trois formules petit-déjeuner',
       subtitle: 'Dès 30 DH par personne',
-      desc: 'Nos trois formules gourmandes (Continental, Express, Beldi) avec msemens tièdes, huile d’olive du Souss, thé à la menthe et jus d’orange pressé minute.',
+      desc: 'Choisissez Continental, Express ou Beldi lors de votre demande. Les formules coûtent 30 ou 35 DH par personne et par jour.',
       tag: 'Saveurs Maison',
       color: 'text-[#1f6f78]',
       borderColor: 'border-[#1f6f78]/30',
     },
     {
       num: '04',
-      title: 'Excursions & Aventures Océan',
-      subtitle: 'Sahara, Taghazout & Paradise Valley',
-      desc: 'Nos guides locaux vous emmènent sur les plus belles crêtes du Petit Sahara en 4x4, dans les vasques turquoise de l’Atlas et sur les vagues mythiques.',
-      tag: 'Aventure 100% Locale',
+      title: 'Séjour à Agadir',
+      subtitle: 'Appart-hôtel de 29 chambres',
+      desc: 'Choisissez une chambre simple, double, triple ou quadruple. Votre demande reste soumise à la confirmation de disponibilité par la résidence.',
+      tag: 'Agadir',
       color: 'text-[#06306b]',
       borderColor: 'border-[#06306b]/30',
     },
@@ -62,8 +62,8 @@ export const WhySection: React.FC = () => {
           <h2 className="font-bebas text-4xl sm:text-6xl text-[#06306b] tracking-tight leading-none mb-4">
             POURQUOI CHOISIR LA RÉSIDENCE ISNI ?
           </h2>
-          <p className="font-sans text-base sm:text-lg text-[#06306b]/80">
-            Un équilibre parfait entre l'accueil chaleureux d'un appart-hôtel de 29 chambres et l’énergie vivifiante des meilleurs camps de surf marocains.
+          <p className="font-sans text-base leading-relaxed text-[#06306b]/80 sm:text-lg">
+            Résidence Isni est un établissement d’hébergement moderne proposant des séjours confortables et fonctionnels aux voyageurs de loisirs comme d’affaires. Ses 29 chambres offrent un équilibre entre confort, intimité et accessibilité. Située au cœur d’Agadir, la résidence se trouve à proximité des restaurants, commerces, cafés, musées et principales attractions de la ville.
           </p>
         </div>
 

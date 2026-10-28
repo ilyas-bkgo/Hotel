@@ -29,12 +29,18 @@ export const GoogleSheetModal: React.FC<GoogleSheetModalProps> = ({
  */
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  lock.tryLock(10000);
+  if (!lock.tryLock(10000)) throw new Error("Impossible de verrouiller la feuille. Réessayez.");
   try {
     var rawData = e.postData ? e.postData.contents : "{}";
     var data = JSON.parse(rawData);
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    if (!ss) ss = SpreadsheetApp.create("Résidence ISNI - Réservations");
+    if (data.websiteHoneypot) {
+      return ContentService.createTextOutput(JSON.stringify({ status: "ignored" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    if (!data.fullName || !data.email || !data.phone || !data.checkIn || !data.checkOut) {
+      throw new Error("Champs obligatoires manquants.");
+    }
+    var ss = getIsniSpreadsheet_();
     
     var sheetName = "Réservations";
     var sheet = ss.getSheetByName(sheetName);
@@ -43,34 +49,46 @@ function doPost(e) {
       sheet.appendRow([
         "Horodatage", "ID", "Nom Client", "Email", "Téléphone", 
         "Chambre", "Arrivée", "Départ", "Nuits", "Personnes", 
-        "Formule Petit-Déj", "Total (MAD)", "Statut", "Notes"
+        "Formule Petit-Déj", "Total (MAD)", "Statut", "Notes", "Activités souhaitées"
       ]);
-      sheet.getRange("A1:N1").setBackground("#06306b").setFontColor("#ffffff").setFontWeight("bold");
+      sheet.getRange("A1:O1").setBackground("#06306b").setFontColor("#ffffff").setFontWeight("bold");
       sheet.setFrozenRows(1);
     }
 
+    if (sheet.getRange(1, 15).getValue() !== "Activités souhaitées") {
+      sheet.getRange(1, 15).setValue("Activités souhaitées").setBackground("#06306b").setFontColor("#ffffff").setFontWeight("bold");
+    }
+
+    var bookingId = data.id || "ISNI-" + new Date().getTime();
+    if (sheet.getLastRow() > 1 && sheet.getRange(2, 2, sheet.getLastRow() - 1, 1)
+      .createTextFinder(String(bookingId)).matchEntireCell(true).findNext()) {
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", id: bookingId, duplicate: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     sheet.appendRow([
-      data.timestamp || new Date(),
-      data.id || "ISNI-" + new Date().getTime(),
-      data.fullName || "",
-      data.email || "",
-      data.phone || "",
-      data.roomType || "",
-      data.checkIn || "",
-      data.checkOut || "",
+      safeCell_(data.timestamp || new Date()),
+      safeCell_(bookingId),
+      safeCell_(data.fullName),
+      safeCell_(data.email),
+      safeCell_(data.phone),
+      safeCell_(data.roomType || ""),
+      safeCell_(data.checkIn),
+      safeCell_(data.checkOut),
       data.nights || "",
       data.guests || 1,
-      data.breakfast || "none",
+      safeCell_(data.breakfast || "none"),
       data.totalPriceMAD || 0,
-      data.status || "en_attente",
-      data.notes || ""
+      safeCell_(data.status || "en_attente"),
+      safeCell_(data.notes || ""),
+      safeCell_(data.activities || "")
     ]);
-    sheet.autoResizeColumns(1, 14);
+    sheet.autoResizeColumns(1, 15);
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       message: "Enregistré avec succès dans Google Sheets",
-      id: data.id
+      id: bookingId
     })).setMimeType(ContentService.MimeType.JSON);
   } catch(err) {
     return ContentService.createTextOutput(JSON.stringify({
@@ -80,6 +98,28 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// À lancer une fois dans l'éditeur Apps Script avant le déploiement.
+function initializeIsniSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) ss = SpreadsheetApp.create("Résidence ISNI - Réservations");
+  PropertiesService.getScriptProperties().setProperty("ISNI_SPREADSHEET_ID", ss.getId());
+  Logger.log("Classeur ISNI prêt : " + ss.getUrl());
+  return ss.getUrl();
+}
+
+function getIsniSpreadsheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss) return ss;
+  var id = PropertiesService.getScriptProperties().getProperty("ISNI_SPREADSHEET_ID");
+  if (!id) throw new Error("Lancez initializeIsniSheet() une fois avant le déploiement.");
+  return SpreadsheetApp.openById(id);
+}
+
+function safeCell_(value) {
+  var text = String(value == null ? "" : value);
+  return /^[=+@\\-\\t\\r]/.test(text) ? "'" + text : text;
 }`;
 
   const handleCopyScript = () => {
@@ -90,7 +130,12 @@ function doPost(e) {
 
   const handleSaveUrl = (e: React.FormEvent) => {
     e.preventDefault();
-    onUpdateGoogleSheetUrl(urlInput);
+    const normalizedUrl = urlInput.trim();
+    if (normalizedUrl && !/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(normalizedUrl)) {
+      setTestStatus('URL invalide : collez l’URL /exec de votre déploiement Apps Script.');
+      return;
+    }
+    onUpdateGoogleSheetUrl(normalizedUrl);
     setTestStatus('URL enregistrée !');
     setTimeout(() => setTestStatus(null), 2500);
   };
@@ -98,17 +143,21 @@ function doPost(e) {
   const handleSendTestPing = async () => {
     setTestStatus('Envoi du ping de test...');
     try {
-      if (urlInput && urlInput.startsWith('http')) {
-        await fetch(urlInput, {
+      const normalizedUrl = urlInput.trim();
+      if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(normalizedUrl)) {
+        setTestStatus('URL invalide : collez et enregistrez l’URL /exec de votre déploiement.');
+        return;
+      }
+      await fetch(normalizedUrl, {
           method: 'POST',
           mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({
             id: 'TEST-PING',
             timestamp: new Date().toLocaleString('fr-FR'),
             fullName: 'Test Intégration ISNI',
             email: 'test@residence-isni.ma',
-            phone: '+212 6 00 00 00 00',
+            phone: '+212 528 820 467',
             roomType: 'Chambre Confort',
             checkIn: '2026-11-01',
             checkOut: '2026-11-04',
@@ -119,11 +168,10 @@ function doPost(e) {
             status: 'test',
             notes: 'Ping de test de la synchronisation',
           }),
-        });
-      }
-      setTestStatus('✅ Ping envoyé avec succès ! Vérifiez votre feuille Google Sheets.');
+      });
+      setTestStatus('Requête envoyée. Vérifiez la ligne TEST dans la feuille : le navigateur ne peut pas lire la réponse Apps Script.');
     } catch (e: any) {
-      setTestStatus('⚠️ Signal envoyé en mode no-cors. Vérifiez votre Google Sheet.');
+      setTestStatus('Échec réseau : la requête n’a pas pu être envoyée. Vérifiez l’URL et le déploiement.');
     }
   };
 
@@ -164,7 +212,7 @@ function doPost(e) {
               1. URL DE L'APPLICATION WEB GOOGLE APPS SCRIPT
             </h3>
             <p className="text-xs font-archivo text-gray-600 mb-4">
-              Collez ci-dessous l'URL de votre script déployé pour que chaque réservation s’y enregistre instantanément :
+              Collez l’URL /exec de votre déploiement Apps Script. Le mode navigateur ne permet pas de lire sa réponse : contrôlez la ligne de test avant la mise en ligne.
             </p>
 
             <form onSubmit={handleSaveUrl} className="flex flex-wrap sm:flex-nowrap gap-3">
@@ -213,7 +261,7 @@ function doPost(e) {
               </button>
             </div>
             <p className="text-xs font-archivo text-gray-600 mb-3">
-              Créez un projet sur <strong>script.google.com</strong>, collez ce code, puis déployez en <em>Application Web</em> (Accès : Tout le monde).
+              Créez un projet sur <strong>script.google.com</strong>, collez ce code, exécutez une fois <code>initializeIsniSheet</code> et autorisez Sheets. Copiez l’URL du journal d’exécution, puis déployez en <em>Application Web</em> (exécution en votre nom, accès Tout le monde).
             </p>
             <div className="bg-[#1e1e1e] p-3.5 rounded-xl max-h-40 overflow-y-auto">
               <pre className="text-[11px] font-mono text-gray-200">{scriptContent}</pre>

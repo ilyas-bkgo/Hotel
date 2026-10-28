@@ -2,35 +2,87 @@ import { RoomType, ActivityItem, BreakfastFormula } from '../types';
 
 export const ROOMS: RoomType[] = [
   {
-    code: 'standard',
-    name: 'Chambre Standard',
-    inventory: 15,
-    priceMAD: 450,
-    description: 'Chambre lumineuse idéale pour voyageurs solo ou couples en quête de confort après une journée dans les vagues. Literie douillette, salle d’eau privative et ambiance marocaine épurée.',
-    capacity: 2,
-    image: '/src/assets/images/isni_suite_room_1793212941115.jpg',
-    highlights: ['Grand lit Queen ou 2 lits simples', 'Salle de bain privative avec douche à l’italienne', 'Wi-Fi haut débit gratuit', 'Espace rangement planches et combinaisons']
+    code: 'simple',
+    name: 'Chambre simple · 1 personne',
+    inventory: 0,
+    priceMAD: 320,
+    description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
+    capacity: 1,
+    image: '/assets/images/isni/twin-bedroom.jpg',
+    highlights: ['1 personne', 'Tarif par nuit', 'Confirmation par la réception']
   },
   {
-    code: 'confort',
-    name: 'Chambre Confort avec Balcon',
-    inventory: 10,
-    priceMAD: 600,
-    description: 'Plus spacieuse avec petit balcon donnant sur la douceur d’Agadir. Parfait pour se détendre au soleil couchant avec un thé à la menthe avant de rejoindre l’ambiance de la ville.',
+    code: 'double',
+    name: 'Chambre double · 2 personnes',
+    inventory: 0,
+    priceMAD: 420,
+    description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
     capacity: 2,
-    image: '/src/assets/images/hero_agadir_surf_camp_1793212941609.jpg',
-    highlights: ['Balcon privatif avec table bistrot', 'Coin salon détente avec banquette', 'Climatisation réversible', 'Mini-réfrigérateur & bouilloire thé']
+    image: '/assets/images/isni/living-room.jpg',
+    highlights: ['2 personnes', 'Tarif par nuit', 'Confirmation par la réception']
   },
   {
-    code: 'suite',
-    name: 'Suite Appart-Hôtel',
-    inventory: 4,
-    priceMAD: 900,
-    description: 'Le summum de l’indépendance pour les petits groupes ou familles de surfeurs. Grand salon contemporain aux touches berbères, kitchenette équipée et vaste terrasse ensoleillée.',
+    code: 'triple',
+    name: 'Chambre triple · 3 personnes',
+    inventory: 0,
+    priceMAD: 480,
+    description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
+    capacity: 3,
+    image: '/assets/images/isni/family-suite.jpg',
+    highlights: ['3 personnes', 'Tarif par nuit', 'Confirmation par la réception']
+  },
+  {
+    code: 'quadruple',
+    name: 'Chambre quadruple · 4 personnes',
+    inventory: 0,
+    priceMAD: 520,
+    description: 'Tarif par nuit selon le barème fourni. La disponibilité est confirmée par la réception.',
     capacity: 4,
-    image: '/src/assets/images/isni_suite_room_1793212941115.jpg',
-    highlights: ['Grand salon séparé avec canapés convertibles', 'Kitchenette moderne toute équipée', 'Terrasse panoramique privée', 'Idéal pour séjours surf longue durée']
+    image: '/assets/images/isni/family-suite.jpg',
+    highlights: ['4 personnes', 'Tarif par nuit', 'Confirmation par la réception']
   }
+];
+
+export const PROPERTY_GALLERY = [
+  { src: '/assets/images/isni/living-room.jpg', alt: 'Salon aménagé avec canapé et table basse', label: 'Salon' },
+  { src: '/assets/images/isni/twin-bedroom.jpg', alt: 'Chambre avec deux lits et linge de maison', label: 'Chambre' },
+  { src: '/assets/images/isni/kitchenette.jpg', alt: 'Coin équipé avec téléviseur et bouilloire', label: 'Équipements' },
+  { src: '/assets/images/isni/family-suite.jpg', alt: 'Espace salon et salle à manger de la suite', label: 'Suite' },
+  { src: '/assets/images/isni/dining-room.jpg', alt: 'Table dressée dans la salle de restauration', label: 'Restauration' },
+  { src: '/assets/images/isni/balcony.jpg', alt: 'Vue depuis un balcon de la résidence', label: 'Vue' },
+];
+
+export const ACCOMMODATION_DETAILS = [
+  {
+    title: 'Studio Confort',
+    area: '36 m²',
+    image: '/assets/images/isni/kitchenette.jpg',
+    description: 'Pensé pour allier confort et fonctionnalité, le studio offre une vue agréable sur le jardin Ibn Zaidoun. Il comprend un grand lit, deux canapés-lits et une kitchenette entièrement équipée. Salle de bain privée avec douche et WC, Wi-Fi gratuit.',
+  },
+  {
+    title: 'Studio quadruple · vue jardin',
+    area: '36 m²',
+    image: '/assets/images/isni/twin-bedroom.jpg',
+    description: 'Une configuration adaptée aux familles ou aux amis, avec trois lits simples et deux canapés-lits. Le studio dispose d’une kitchenette équipée, d’une salle de bain privée avec douche et WC, du Wi-Fi gratuit et d’un balcon avec vue sur le jardin Ibn Zaidoun.',
+  },
+  {
+    title: 'Chambre quadruple avec balcon',
+    area: '36 m²',
+    image: '/assets/images/isni/family-suite.jpg',
+    description: 'Peut accueillir jusqu’à quatre personnes avec deux lits simples et deux canapés-lits. Elle comprend une kitchenette équipée, une salle de bain privée avec douche et WC, un balcon et le Wi-Fi gratuit. La vue jardin dépend de la disponibilité.',
+  },
+  {
+    title: 'Appartement deux chambres',
+    area: '55 m²',
+    image: '/assets/images/isni/twin-bedroom.jpg',
+    description: 'Un hébergement spacieux pour les familles ou les groupes, avec deux chambres séparées, un salon, trois lits simples, un lit double et deux canapés-lits. Kitchenette équipée, salle de bain privée avec douche et WC, Wi-Fi gratuit. Balcon avec vue sur le jardin selon disponibilité.',
+  },
+  {
+    title: 'Appartement une chambre',
+    area: '36 m²',
+    image: '/assets/images/isni/living-room.jpg',
+    description: 'Un espace fonctionnel avec deux lits simples et deux canapés-lits, une kitchenette équipée, une salle de bain privée avec douche et WC et le Wi-Fi gratuit. Balcon avec vue sur le jardin Ibn Zaidoun selon disponibilité.',
+  },
 ];
 
 export const BREAKFAST_FORMULAS: BreakfastFormula[] = [
@@ -76,64 +128,24 @@ export const BREAKFAST_FORMULAS: BreakfastFormula[] = [
 
 export const ACTIVITIES: ActivityItem[] = [
   {
-    id: 'surf-lesson',
-    title: 'Cours de Surf Débutant & Intermédiaire',
-    price: 'Sur demande (dès 350 DH)',
-    priceMAD: 350,
+    id: 'surf-debutant',
+    title: 'Surf · Débutant · Taghazout',
+    price: 'Tarif à confirmer',
+    priceMAD: 0,
     category: 'surf',
-    duration: 'Demi-journée (2h de cours + free surf)',
-    description: 'Encadrement par des moniteurs locaux certifiés sur les meilleurs spots abrités d’Agadir et d’Anza. Planche et combinaison intégrale fournies.',
-    included: ['Transport depuis la résidence', 'Matériel de surf complet', 'Coaching personnalisé', 'Analyse vidéo debriefing']
+    duration: 'Sur demande',
+    description: 'Une sortie surf à Taghazout pour découvrir la pratique avec un moniteur. Niveau, conditions et disponibilités à confirmer avec la résidence.',
+    included: ['Excursion à Taghazout', 'Session de surf', 'Transport vers les spots', 'Planche, combinaison, moniteur et déjeuner inclus']
   },
   {
-    id: 'surf-guiding',
-    title: 'Surf Guiding Spots Secrets Taghazout',
-    price: 'Sur demande (dès 400 DH)',
-    priceMAD: 400,
+    id: 'surf-intermediaire',
+    title: 'Surf · Intermédiaire · Taghazout',
+    price: 'Tarif à confirmer',
+    priceMAD: 0,
     category: 'surf',
-    duration: 'Journée complète',
-    description: 'Pour surfeurs autonomes : nous vous emmenons là où les vagues déroulent le mieux selon la marée, le vent et la houle (Anchor Point, Killer Point, Imsouane Bay).',
-    included: ['Guide local bilingue', 'Chasse aux vagues 4x4', 'Pique-nique marocain en bord de falaise', 'Stockage sécurisé à l’hôtel']
-  },
-  {
-    id: 'petit-sahara',
-    title: 'Excursion Petit Sahara & Dunes de Tifnit',
-    price: '25 € (250 DH)',
-    priceMAD: 250,
-    category: 'excursion',
-    duration: 'Demi-journée',
-    description: 'Échappée sauvage en 4x4 vers les spectaculaires dunes dorées se jetant dans l’océan Atlantique, visite des grottes de pêcheurs troglodytes et thé chez l’habitant.',
-    included: ['4x4 climatisé & chauffeur', 'Balade sur les crêtes de sable', 'Arrêt photos falaises océaniques', 'Pause thé & pâtisseries marocaines']
-  },
-  {
-    id: 'surfskate',
-    title: 'Coaching Surfskate & Carving',
-    price: '15 € (150 DH)',
-    priceMAD: 150,
-    category: 'surf',
-    duration: '1h30',
-    description: 'Perfectionnez votre équilibre, vos manœuvres et vos virages sur le bitume lisse de la promenade d’Agadir et des bowls avec un Carver.',
-    included: ['Planches Carver fournies', 'Protections et casque', 'Conseils biomécaniques surf', 'Session coucher de soleil']
-  },
-  {
-    id: 'paradise-valley',
-    title: 'Randonnée Paradise Valley & Piscines Naturelles',
-    price: '20 € (200 DH)',
-    priceMAD: 200,
-    category: 'excursion',
-    duration: 'Demi-journée (5h)',
-    description: 'Exploration de la gorge luxuriante de l’Atlas, baignade rafraîchissante dans les vasques turquoise d’eau de source et déjeuner tajine sous les palmiers.',
-    included: ['Guide de randonnée pédestre', 'Temps libre baignade & sauts sécurisés', 'Tajine berbère traditionnel en plein air', 'Transport aller-retour']
-  },
-  {
-    id: 'rooftop-yoga',
-    title: 'Sunset Yoga & Étirements Post-Surf',
-    price: '120 DH',
-    priceMAD: 120,
-    category: 'bien-etre',
-    duration: '1h15',
-    description: 'Séance de Vinyasa doux sur le rooftop de la Résidence face à la brise marine pour détendre les épaules, le dos et le souffle après la session de surf.',
-    included: ['Tapis de yoga fournis', 'Tisane bio relaxante', 'Musique d’ambiance apaisante', 'Vue dorée sur les toits d’Agadir']
+    duration: 'Sur demande',
+    description: 'Une sortie surf à Taghazout pour les voyageurs ayant déjà une expérience. Programme et disponibilités à confirmer avec la résidence.',
+    included: ['Excursion à Taghazout', 'Session de surf', 'Transport vers les spots', 'Planche, combinaison, moniteur et déjeuner inclus']
   }
 ];
 
@@ -142,31 +154,31 @@ export const HOTEL_INFO = {
   tagline: 'Apparts-Hôtel & Surf Camp Lifestyle',
   city: 'Agadir',
   country: 'Maroc',
-  address: 'Avenue Allal Ben Abdellah, Agadir 80000',
-  phone: '+212 5 28 84 21 00',
-  whatsapp: '+212 6 61 24 55 88',
+  address: 'Avenue Allal Ben Abdellah, Agadir',
+  phone: '+212 528 820 467',
+  whatsapp: '+212 528 820 467',
   email: 'contact@residence-isni.ma',
   checkIn: '14:00',
   checkOut: '12:00',
   totalRooms: 29,
-  defaultGoogleSheetUrl: 'https://script.google.com/macros/s/AKfycbz_SAMPLE_ISNI_GOOGLE_SHEET_URL/exec'
+  defaultGoogleSheetUrl: ''
 };
 
 export const GOOD_TO_KNOW = [
   {
-    title: 'Check-in & Check-out flexibles',
-    desc: 'Accueil chaleureux dès 14h00. Départ jusqu’à 12h00 pour profiter d’une dernière session de surf matinale sans stress.'
+    title: 'Des chambres pour 1 à 4 personnes',
+    desc: 'Le barème fourni distingue les chambres simples, doubles, triples et quadruples. Les disponibilités sont confirmées par la résidence.',
   },
   {
-    title: 'Local à Planches & Séchage',
-    desc: 'Râtelier sécurisé dédié au matériel de surf, avec point de rinçage à l’eau douce pour vos combinaisons et serviettes.'
+    title: 'Tarifs affichés par nuit',
+    desc: '320 DH en simple, 420 DH en double, 480 DH en triple et 520 DH en quadruple, selon le barème fourni.',
   },
   {
-    title: 'Navettes Aéroport & Spots',
-    desc: 'Sur simple demande, nous organisons votre transfert direct depuis l’aéroport d’Agadir Al Massira (30 min) et vers les spots.'
+    title: 'Petit-déjeuner en option',
+    desc: 'Choisissez Continental (35 DH), Express (30 DH) ou Beldi (35 DH) par personne et par jour.',
   },
   {
-    title: 'Emplacement Idéal au Cœur de la Ville',
-    desc: 'Situé sur l’Avenue Allal Ben Abdellah, vous accédez aux cafés traditionnels, commerces locaux et à la plage d’Agadir en quelques minutes.'
-  }
+    title: 'Sortie surf sur demande',
+    desc: 'L’affiche fournie annonce une sortie à Taghazout avec transport, matériel, moniteur et déjeuner. Tarif et disponibilité à confirmer.',
+  },
 ];

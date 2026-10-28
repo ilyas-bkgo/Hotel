@@ -1,13 +1,13 @@
 import React from 'react';
-import { Clock, Shield, Plane, MapPin, Sparkles } from 'lucide-react';
+import { BedDouble, BadgeCheck, Coffee, Waves } from 'lucide-react';
 import { GOOD_TO_KNOW } from '../data/hotelData';
 
 export const GoodToKnow: React.FC = () => {
   const icons = [
-    <Clock className="w-6 h-6 text-[#f05a2d]" key="1" />,
-    <Shield className="w-6 h-6 text-[#1f6f78]" key="2" />,
-    <Plane className="w-6 h-6 text-[#f29acb]" key="3" />,
-    <MapPin className="w-6 h-6 text-[#06306b]" key="4" />,
+    <BedDouble className="w-6 h-6 text-[#f05a2d]" key="1" />,
+    <BadgeCheck className="w-6 h-6 text-[#1f6f78]" key="2" />,
+    <Coffee className="w-6 h-6 text-[#f29acb]" key="3" />,
+    <Waves className="w-6 h-6 text-[#06306b]" key="4" />,
   ];
 
   return (
@@ -22,7 +22,7 @@ export const GoodToKnow: React.FC = () => {
             À SAVOIR AVANT VOTRE SÉJOUR
           </h2>
           <p className="font-sans text-base sm:text-lg text-[#06306b]/80">
-            Toutes les informations pratiques pour organiser votre arrivée à la Résidence ISNI et profiter pleinement de vos journées océanes.
+            Tarifs et prestations repris du barème et de l’affiche transmis. Les disponibilités et le tarif surf sont confirmés par la résidence.
           </p>
         </div>
 

@@ -14,7 +14,7 @@ export const MarqueeStrip: React.FC = () => {
 
   return (
     <div className="bg-[#06306b] text-[#f2e8df] py-3.5 overflow-hidden whitespace-nowrap border-y border-[#f05a2d]/30 relative z-20">
-      <div className="inline-flex items-center gap-8 animate-[marquee_30s_linear_infinite]">
+      <div className="marquee-track inline-flex items-center gap-8 animate-[marquee_30s_linear_infinite]">
         {phrases.concat(phrases).map((text, idx) => (
           <div key={idx} className="inline-flex items-center gap-3">
             <span className="font-bebas text-lg sm:text-xl tracking-wider text-white">

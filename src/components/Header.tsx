@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
-import { Calendar, Download, FileCode, Menu, X, Waves, Sheet } from 'lucide-react';
+import { ChevronDown, Menu, X, Waves } from 'lucide-react';
+import { SurfLevel } from '../types';
 
 interface HeaderProps {
-  onOpenWordpressModal: () => void;
-  onOpenSheetModal: () => void;
   onScrollToSection: (id: string) => void;
+  onOpenSurfLevel: (level: SurfLevel) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
-  onOpenWordpressModal,
-  onOpenSheetModal,
   onScrollToSection,
+  onOpenSurfLevel,
 }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [surfMenuOpen, setSurfMenuOpen] = useState(false);
 
   const navItems = [
     { label: 'Pourquoi Nous', id: 'pourquoi' },
     { label: 'Chambres', id: 'chambres' },
-    { label: 'Activités & Surf', id: 'activites' },
     { label: 'Petit-Déjeuner', id: 'petit-dejeuner' },
     { label: 'À Savoir', id: 'a-savoir' },
   ];
@@ -25,6 +24,13 @@ export const Header: React.FC<HeaderProps> = ({
   const handleNavClick = (id: string) => {
     onScrollToSection(id);
     setMobileMenuOpen(false);
+    setSurfMenuOpen(false);
+  };
+
+  const handleSurfClick = (level: SurfLevel) => {
+    onOpenSurfLevel(level);
+    setMobileMenuOpen(false);
+    setSurfMenuOpen(false);
   };
 
   return (
@@ -51,48 +57,20 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Clean Nav Links (Desktop) */}
         <nav className="hidden lg:flex items-center gap-7">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => handleNavClick(item.id)}
-              className="text-[#06306b] hover:text-[#f05a2d] font-archivo font-semibold text-sm tracking-wide transition-colors cursor-pointer whitespace-nowrap shrink-0"
-            >
-              {item.label}
-            </button>
+          {navItems.slice(0, 2).map((item) => (
+            <button key={item.id} onClick={() => handleNavClick(item.id)} className="shrink-0 cursor-pointer whitespace-nowrap font-archivo text-sm font-semibold tracking-wide text-[#06306b] transition-colors hover:text-[#f05a2d]">{item.label}</button>
+          ))}
+          <div className="relative">
+            <button type="button" aria-expanded={surfMenuOpen} onClick={() => setSurfMenuOpen((open) => !open)} className="inline-flex shrink-0 cursor-pointer items-center gap-1 whitespace-nowrap font-archivo text-sm font-semibold tracking-wide text-[#06306b] transition-colors hover:text-[#f05a2d]">Surf <ChevronDown className={`h-4 w-4 transition-transform ${surfMenuOpen ? 'rotate-180' : ''}`} /></button>
+            {surfMenuOpen && <div className="absolute left-0 top-full z-50 mt-3 min-w-48 rounded-xl border border-[#06306b]/10 bg-white p-2 shadow-xl animate-in fade-in slide-in-from-top-2 duration-200"><button onClick={() => handleSurfClick('debutant')} className="block w-full rounded-lg px-4 py-3 text-left font-archivo text-sm font-bold text-[#06306b] transition hover:bg-[#f2e8df] hover:text-[#f05a2d]">Débutant</button><button onClick={() => handleSurfClick('intermediaire')} className="block w-full rounded-lg px-4 py-3 text-left font-archivo text-sm font-bold text-[#06306b] transition hover:bg-[#f2e8df] hover:text-[#f05a2d]">Intermédiaire</button></div>}
+          </div>
+          {navItems.slice(2).map((item) => (
+            <button key={item.id} onClick={() => handleNavClick(item.id)} className="shrink-0 cursor-pointer whitespace-nowrap font-archivo text-sm font-semibold tracking-wide text-[#06306b] transition-colors hover:text-[#f05a2d]">{item.label}</button>
           ))}
         </nav>
 
-        {/* Action Zone */}
+        {/* Navigation toggle stays available without exposing project tools or a booking CTA. */}
         <div className="flex items-center gap-3 shrink-0">
-          {/* Google Sheets Status / Config Button */}
-          <button
-            onClick={onOpenSheetModal}
-            className="hidden sm:inline-flex items-center gap-1.5 px-3 py-2 text-xs font-archivo font-bold text-[#06306b] bg-[#e8d9cc]/60 hover:bg-[#e8d9cc] rounded-full border border-[#06306b]/20 transition-all cursor-pointer whitespace-nowrap shrink-0"
-            title="Google Sheets & Apps Script"
-          >
-            <Sheet className="w-3.5 h-3.5 text-[#1f6f78]" />
-            <span>Google Sheet</span>
-          </button>
-
-          {/* WordPress Theme Exporter Button */}
-          <button
-            onClick={onOpenWordpressModal}
-            className="hidden md:inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-archivo font-bold text-white bg-[#06306b] hover:bg-[#042048] rounded-full shadow-sm hover:shadow transition-all cursor-pointer whitespace-nowrap shrink-0"
-            title="Télécharger le thème WordPress prêt pour cPanel"
-          >
-            <Download className="w-3.5 h-3.5 text-[#f29acb]" />
-            <span>Thème WP (.ZIP)</span>
-          </button>
-
-          {/* Primary CTA */}
-          <button
-            onClick={() => handleNavClick('reservation')}
-            className="inline-flex items-center gap-2 px-5 py-2.5 text-xs sm:text-sm font-archivo font-extrabold uppercase text-white bg-[#f05a2d] hover:bg-[#d44519] rounded-full shadow-md hover:shadow-lg transform active:scale-95 transition-all cursor-pointer whitespace-nowrap shrink-0"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Réserver</span>
-          </button>
-
           {/* Mobile hamburger */}
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -108,39 +86,12 @@ export const Header: React.FC<HeaderProps> = ({
       {mobileMenuOpen && (
         <div className="lg:hidden bg-[#f2e8df] border-b border-[#06306b]/20 px-6 py-5 shadow-xl animate-in fade-in duration-200">
           <div className="flex flex-col gap-4">
-            {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => handleNavClick(item.id)}
-                className="text-left font-archivo font-bold text-base text-[#06306b] hover:text-[#f05a2d] py-1 transition-colors"
-              >
-                {item.label}
-              </button>
-            ))}
+            {navItems.slice(0, 2).map((item) => <button key={item.id} onClick={() => handleNavClick(item.id)} className="py-1 text-left font-archivo text-base font-bold text-[#06306b] transition-colors hover:text-[#f05a2d]">{item.label}</button>)}
+            <p className="pt-1 font-archivo text-xs font-black uppercase tracking-widest text-[#f05a2d]">Surf</p>
+            <button onClick={() => handleSurfClick('debutant')} className="py-1 pl-3 text-left font-archivo text-base font-bold text-[#06306b] transition-colors hover:text-[#f05a2d]">Débutant</button>
+            <button onClick={() => handleSurfClick('intermediaire')} className="py-1 pl-3 text-left font-archivo text-base font-bold text-[#06306b] transition-colors hover:text-[#f05a2d]">Intermédiaire</button>
+            {navItems.slice(2).map((item) => <button key={item.id} onClick={() => handleNavClick(item.id)} className="py-1 text-left font-archivo text-base font-bold text-[#06306b] transition-colors hover:text-[#f05a2d]">{item.label}</button>)}
 
-            <div className="pt-4 border-t border-[#06306b]/15 flex flex-col gap-3">
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenSheetModal();
-                }}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-full border border-[#06306b]/20 bg-white/60 text-[#06306b] font-archivo font-bold text-xs"
-              >
-                <Sheet className="w-4 h-4 text-[#1f6f78]" />
-                <span>Intégration Google Sheet & Webhook</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  setMobileMenuOpen(false);
-                  onOpenWordpressModal();
-                }}
-                className="flex items-center justify-center gap-2 w-full py-2.5 rounded-full bg-[#06306b] text-white font-archivo font-bold text-xs"
-              >
-                <Download className="w-4 h-4 text-[#f29acb]" />
-                <span>Télécharger le thème WordPress (.ZIP)</span>
-              </button>
-            </div>
           </div>
         </div>
       )}

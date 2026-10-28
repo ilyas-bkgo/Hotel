@@ -1,79 +1,56 @@
 import React, { useState, useMemo } from 'react';
-import { 
-  Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight, 
+import {
   User, 
   Mail, 
   Phone, 
-  FileText, 
   CheckCircle, 
-  Clock, 
-  ShieldCheck, 
+  X,
   Send, 
-  Coffee, 
-  Sparkles,
   MessageCircle,
-  ExternalLink
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { ROOMS, BREAKFAST_FORMULAS, HOTEL_INFO } from '../data/hotelData';
+import { ROOMS, BREAKFAST_FORMULAS, ACTIVITIES, HOTEL_INFO } from '../data/hotelData';
 import { BookingFormState, BookingRecord } from '../types';
+import { formatLocalDate } from '../utils/date';
 
 interface BookingCalendarProps {
   initialRoomCode?: string;
   initialCheckIn?: string;
   initialCheckOut?: string;
   initialBreakfastCode?: string;
-  onBookingSubmitted?: (record: BookingRecord) => void;
+  onBreakfastChange: (code: string) => void;
+  selectedActivityIds: string[];
+  onToggleActivity: (activityId: string) => void;
   googleSheetUrl: string;
 }
 
 export const BookingCalendar: React.FC<BookingCalendarProps> = ({
-  initialRoomCode = 'standard',
+  initialRoomCode = 'double',
   initialCheckIn,
   initialCheckOut,
-  initialBreakfastCode = 'beldi',
-  onBookingSubmitted,
+  initialBreakfastCode = 'none',
+  onBreakfastChange,
+  selectedActivityIds = [],
+  onToggleActivity,
   googleSheetUrl,
 }) => {
   // Dates initialization
   const today = useMemo(() => new Date(), []);
-  const todayStr = useMemo(() => today.toISOString().split('T')[0], [today]);
-
-  const defaultIn = useMemo(() => {
-    if (initialCheckIn) return initialCheckIn;
-    const d = new Date();
-    d.setDate(d.getDate() + 1);
-    return d.toISOString().split('T')[0];
-  }, [initialCheckIn]);
-
-  const defaultOut = useMemo(() => {
-    if (initialCheckOut) return initialCheckOut;
-    const d = new Date();
-    d.setDate(d.getDate() + 4);
-    return d.toISOString().split('T')[0];
-  }, [initialCheckOut]);
+  const todayStr = useMemo(() => formatLocalDate(today), [today]);
 
   // Form State
   const [form, setForm] = useState<BookingFormState>({
-    checkIn: defaultIn,
-    checkOut: defaultOut,
+    checkIn: initialCheckIn || '',
+    checkOut: initialCheckOut || '',
     roomCode: initialRoomCode,
-    guests: 2,
+    guests: ROOMS.find(room => room.code === initialRoomCode)?.capacity ?? 2,
     breakfastCode: initialBreakfastCode,
+    activities: [],
     fullName: '',
     email: '',
     phone: '',
     notes: '',
     websiteHoneypot: '',
-  });
-
-  // Calendar display month state
-  const [currentMonthDate, setCurrentMonthDate] = useState<Date>(() => {
-    const d = new Date();
-    d.setDate(1);
-    return d;
   });
 
   // Submission status
@@ -83,7 +60,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   // Sync external changes
   React.useEffect(() => {
-    if (initialRoomCode) setForm(prev => ({ ...prev, roomCode: initialRoomCode }));
+    if (initialRoomCode) setForm(prev => ({ ...prev, roomCode: initialRoomCode, guests: ROOMS.find(room => room.code === initialRoomCode)?.capacity ?? prev.guests }));
   }, [initialRoomCode]);
 
   React.useEffect(() => {
@@ -97,11 +74,12 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
   // Calculation helpers
   const nights = useMemo(() => {
-    if (!form.checkIn || !form.checkOut) return 1;
-    const d1 = new Date(form.checkIn);
-    const d2 = new Date(form.checkOut);
-    const diff = Math.round((d2.getTime() - d1.getTime()) / (1000 * 60 * 60 * 24));
-    return diff > 0 ? diff : 1;
+    if (!form.checkIn || !form.checkOut) return 0;
+    const [inYear, inMonth, inDay] = form.checkIn.split('-').map(Number);
+    const [outYear, outMonth, outDay] = form.checkOut.split('-').map(Number);
+    const start = Date.UTC(inYear, inMonth - 1, inDay);
+    const end = Date.UTC(outYear, outMonth - 1, outDay);
+    return end > start ? Math.round((end - start) / 86_400_000) : 0;
   }, [form.checkIn, form.checkOut]);
 
   const selectedRoom = useMemo(() => {
@@ -112,57 +90,15 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     return BREAKFAST_FORMULAS.find(b => b.code === form.breakfastCode);
   }, [form.breakfastCode]);
 
+  const selectedActivities = useMemo(
+    () => ACTIVITIES.filter((activity) => selectedActivityIds.includes(activity.id)),
+    [selectedActivityIds]
+  );
+
   const roomTotalPrice = nights * selectedRoom.priceMAD;
   const breakfastUnitPrice = selectedBreakfast ? selectedBreakfast.priceDH : 0;
   const breakfastTotalPrice = nights * breakfastUnitPrice * form.guests;
   const totalStayPrice = roomTotalPrice + breakfastTotalPrice;
-
-  // Calendar generation helpers
-  const year = currentMonthDate.getFullYear();
-  const month = currentMonthDate.getMonth();
-  const monthNames = [
-    'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
-    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'
-  ];
-
-  const daysInMonth = new Date(year, month + 1, 0).getDate();
-  const firstDayOfWeek = new Date(year, month, 1).getDay(); // 0 is Sun
-  // Convert so Monday is 0
-  const startOffset = (firstDayOfWeek + 6) % 7;
-
-  const handlePrevMonth = () => {
-    setCurrentMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
-  };
-
-  const handleNextMonth = () => {
-    setCurrentMonthDate(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
-  };
-
-  const handleDateClick = (dateStr: string) => {
-    if (dateStr < todayStr) return; // cannot select past
-
-    if (!form.checkIn || (form.checkIn && form.checkOut)) {
-      // Start new selection
-      setForm(prev => ({ ...prev, checkIn: dateStr, checkOut: '' }));
-    } else {
-      // Second click: if clicked before checkIn, set as new checkIn
-      if (dateStr <= form.checkIn) {
-        setForm(prev => ({ ...prev, checkIn: dateStr, checkOut: '' }));
-      } else {
-        setForm(prev => ({ ...prev, checkOut: dateStr }));
-      }
-    }
-  };
-
-  const isSelectedRange = (dateStr: string) => {
-    if (!form.checkIn) return false;
-    if (dateStr === form.checkIn) return 'start';
-    if (dateStr === form.checkOut) return 'end';
-    if (form.checkIn && form.checkOut && dateStr > form.checkIn && dateStr < form.checkOut) {
-      return 'middle';
-    }
-    return false;
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,7 +110,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       return;
     }
 
-    if (!form.checkIn || !form.checkOut) {
+    if (!form.checkIn || !form.checkOut || nights < 1) {
       setSubmissionError('Veuillez sélectionner vos dates d’arrivée et de départ.');
       return;
     }
@@ -184,11 +120,17 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       return;
     }
 
+    if (!/^https:\/\/script\.google\.com\/macros\/s\/[^/]+\/exec(?:\?.*)?$/.test(googleSheetUrl)) {
+      setSubmissionError('La réservation en ligne n’est pas encore connectée. Contactez-nous via WhatsApp pour envoyer votre demande.');
+      return;
+    }
+
     setIsSubmitting(true);
 
-    const bookingId = `ISNI-${Date.now().toString().slice(-6)}`;
+    const bookingId = `ISNI-${Date.now()}-${Math.random().toString(36).slice(2, 7).toUpperCase()}`;
     const newRecord: BookingRecord = {
       ...form,
+      activities: selectedActivities.map((activity) => activity.title),
       id: bookingId,
       nights,
       roomPrice: roomTotalPrice,
@@ -199,36 +141,36 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     };
 
     try {
-      // Real sync with Google Apps Script Web App if configured
-      if (googleSheetUrl && googleSheetUrl.startsWith('http')) {
-        try {
-          await fetch(googleSheetUrl, {
-            method: 'POST',
-            mode: 'no-cors', // Standard Google Apps Script cross-origin Web App mode
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              id: bookingId,
-              timestamp: new Date().toLocaleString('fr-FR'),
-              fullName: form.fullName,
-              email: form.email,
-              phone: form.phone,
-              roomType: selectedRoom.name,
-              checkIn: form.checkIn,
-              checkOut: form.checkOut,
-              nights,
-              guests: form.guests,
-              breakfast: selectedBreakfast ? `${selectedBreakfast.name} (${selectedBreakfast.priceDH} DH)` : 'Aucun',
-              totalPriceMAD: totalStayPrice,
-              status: 'en_attente',
-              notes: form.notes,
-            }),
-          });
-        } catch (sheetErr) {
-          console.warn('Google Sheet endpoint webhook warning:', sheetErr);
-        }
-      }
+      // Apps Script accepts this simple cross-origin POST, but no-cors makes its
+      // response unreadable. The UI must therefore describe this as submitted,
+      // never as a verified spreadsheet write or a confirmed booking.
+      await fetch(googleSheetUrl, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({
+          id: bookingId,
+          timestamp: new Date().toLocaleString('fr-FR'),
+          fullName: form.fullName,
+          email: form.email,
+          phone: form.phone,
+          roomType: selectedRoom.name,
+          roomCode: selectedRoom.code,
+          checkIn: form.checkIn,
+          checkOut: form.checkOut,
+          nights,
+          guests: form.guests,
+          breakfast: selectedBreakfast ? `${selectedBreakfast.name} (${selectedBreakfast.priceDH} DH)` : 'Aucun',
+          breakfastCode: form.breakfastCode,
+          roomPriceMAD: roomTotalPrice,
+          breakfastPriceMAD: breakfastTotalPrice,
+          activities: selectedActivities.map((activity) => activity.title).join(', '),
+          totalPriceMAD: totalStayPrice,
+          status: 'en_attente',
+          notes: form.notes,
+          websiteHoneypot: form.websiteHoneypot,
+        }),
+      });
 
       // Trigger Confetti
       confetti({
@@ -239,9 +181,6 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
       });
 
       setSubmissionSuccess(newRecord);
-      if (onBookingSubmitted) {
-        onBookingSubmitted(newRecord);
-      }
     } catch (err: any) {
       setSubmissionError('Une erreur est survenue lors de l’envoi. Veuillez réessayer ou utiliser WhatsApp.');
     } finally {
@@ -249,17 +188,35 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
     }
   };
 
-  const getWhatsAppLink = () => {
+  const getWhatsAppLink = (record?: BookingRecord) => {
+    const room = ROOMS.find(item => item.code === (record?.roomCode ?? form.roomCode)) || ROOMS[0];
+    const breakfast = BREAKFAST_FORMULAS.find(item => item.code === (record?.breakfastCode ?? form.breakfastCode));
+    const guests = record?.guests ?? form.guests;
+    const checkIn = record?.checkIn ?? form.checkIn;
+    const checkOut = record?.checkOut ?? form.checkOut;
+    const nightsCount = record?.nights ?? nights;
+    const name = record?.fullName ?? form.fullName;
+    const email = record?.email ?? form.email;
+    const phone = record?.phone ?? form.phone;
+    const notes = record?.notes ?? form.notes;
+    const roomTotal = record?.roomPrice ?? roomTotalPrice;
+    const breakfastTotal = record?.breakfastPrice ?? breakfastTotalPrice;
+    const total = record?.totalPriceMAD ?? totalStayPrice;
+    const activities = record?.activities ?? selectedActivities.map((activity) => activity.title);
     const text = encodeURIComponent(
       `Bonjour Résidence ISNI Agadir !\n` +
       `Je souhaite réserver un séjour :\n` +
-      `• Chambre : ${selectedRoom.name}\n` +
-      `• Dates : du ${form.checkIn || '...'} au ${form.checkOut || '...'} (${nights} nuits)\n` +
-      `• Personnes : ${form.guests}\n` +
-      `• Petit-déjeuner : ${selectedBreakfast ? selectedBreakfast.name : 'Sans formule'}\n` +
-      `• Estimation : ${totalStayPrice} MAD\n` +
-      `• Nom : ${form.fullName || 'Client'}\n` +
-      `Merci de me confirmer la disponibilité !`
+      `• Hébergement : ${room.name}\n` +
+      `• Dates : du ${checkIn || '...'} au ${checkOut || '...'} (${nightsCount} nuits)\n` +
+      `• Voyageurs : ${guests}\n` +
+      `• Petit-déjeuner : ${breakfast ? `${breakfast.name} (${breakfast.priceDH} DH/personne/jour)` : 'Aucun'}\n` +
+      `• Prix chambre : ${roomTotal} MAD\n` +
+      `• Prix petits-déjeuners : ${breakfastTotal} MAD\n` +
+      (activities.length ? `• Activités demandées : ${activities.join(', ')} (tarif à confirmer)\n` : '• Activités demandées : aucune\n') +
+      `• Total estimé hors activités : ${total} MAD\n\n` +
+      `Coordonnées :\n• Nom : ${name || 'À compléter'}\n• Email : ${email || 'À compléter'}\n• Téléphone / WhatsApp : ${phone || 'À compléter'}\n` +
+      (notes ? `• Demandes particulières : ${notes}\n` : '• Demandes particulières : aucune\n') +
+      `\nMerci de me confirmer la disponibilité !`
     );
     const cleanNum = HOTEL_INFO.whatsapp.replace(/[^0-9]/g, '');
     return `https://wa.me/${cleanNum}?text=${text}`;
@@ -284,10 +241,10 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             Disponibilité & Tarifs en Direct
           </span>
           <h2 className="font-bebas text-4xl sm:text-6xl text-[#06306b] tracking-tight leading-none mb-3">
-            CALENDRIER DE RÉSERVATION ISNI
+            COMPOSER VOTRE SÉJOUR
           </h2>
           <p className="font-sans text-base sm:text-lg text-[#06306b]/80">
-            Interface fluide type Booking.com : sélectionnez vos dates, visualisez le total en temps réel et recevez votre confirmation instantanée synchronisée avec Google Sheets.
+            Choisissez vos dates, le type d’hébergement et les options souhaitées. Votre demande sera confirmée par la résidence.
           </p>
         </div>
 
@@ -300,7 +257,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
               </div>
               <div>
                 <span className="font-marker text-xs text-[#1f6f78] uppercase tracking-wider block">
-                  Demande Enregistrée avec Succès !
+                  Demande transmise · À confirmer
                 </span>
                 <h3 className="font-bebas text-3xl text-[#06306b] leading-tight">
                   RÉSERVATION #{submissionSuccess.id}
@@ -309,8 +266,21 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
             </div>
 
             <p className="font-sans text-sm sm:text-base text-[#06306b]/80 mb-6 leading-relaxed">
-              Merci <strong className="text-[#06306b]">{submissionSuccess.fullName}</strong> ! Votre demande pour <strong>{selectedRoom.name}</strong> du <strong>{submissionSuccess.checkIn}</strong> au <strong>{submissionSuccess.checkOut}</strong> ({submissionSuccess.nights} nuits) a bien été envoyée à notre réception et enregistrée dans le Google Sheet.
+              Merci <strong className="text-[#06306b]">{submissionSuccess.fullName}</strong> ! Votre demande pour <strong>{ROOMS.find(room => room.code === submissionSuccess.roomCode)?.name || submissionSuccess.roomCode}</strong> du <strong>{submissionSuccess.checkIn}</strong> au <strong>{submissionSuccess.checkOut}</strong> ({submissionSuccess.nights} nuits) a été envoyée à Google Sheets. La réservation reste en attente de confirmation par notre équipe.
             </p>
+
+            {submissionSuccess.activities.length > 0 && (
+              <p className="text-sm font-archivo text-[#06306b]/80 mb-6">
+                <strong>Activités demandées :</strong> {submissionSuccess.activities.join(', ')} · tarif à confirmer.
+              </p>
+            )}
+
+            <div className="mb-6 rounded-2xl border border-[#06306b]/10 bg-white p-4 text-xs leading-6 text-[#06306b]">
+              <strong className="mb-1 block font-archivo uppercase tracking-wide">Coordonnées enregistrées</strong>
+              <p>{submissionSuccess.fullName} · {submissionSuccess.email} · {submissionSuccess.phone}</p>
+              {submissionSuccess.notes && <p><strong>Demandes particulières :</strong> {submissionSuccess.notes}</p>}
+              <p><strong>Prix de la chambre :</strong> {submissionSuccess.roomPrice} MAD · <strong>Petits-déjeuners :</strong> {submissionSuccess.breakfastPrice} MAD</p>
+            </div>
 
             <div className="bg-[#f2e8df] p-4 rounded-2xl mb-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs font-archivo text-[#06306b]">
               <div>
@@ -319,7 +289,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
               </div>
               <div>
                 <span className="text-gray-500 block">Petit-déjeuner</span>
-                <strong>{selectedBreakfast ? selectedBreakfast.name : 'Aucun'}</strong>
+                <strong>{BREAKFAST_FORMULAS.find(item => item.code === submissionSuccess.breakfastCode)?.name || 'Aucun'}</strong>
               </div>
               <div>
                 <span className="text-gray-500 block">Total estimé</span>
@@ -333,7 +303,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
 
             <div className="flex flex-wrap gap-4">
               <a
-                href={getWhatsAppLink()}
+                href={getWhatsAppLink(submissionSuccess)}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-3 bg-[#25D366] hover:bg-[#1ebd5a] text-white font-archivo font-bold text-xs uppercase tracking-wider rounded-full shadow-md flex items-center gap-2"
@@ -378,113 +348,31 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                     1
                   </span>
                   <h3 className="font-bebas text-2xl sm:text-3xl text-[#06306b] tracking-wide">
-                    CHOISISSEZ VOS DATES DE SÉJOUR
+                    VOTRE SÉJOUR
                   </h3>
                 </div>
 
-                {/* Calendar Navigation Month Header */}
-                <div className="bg-[#f2e8df] rounded-2xl p-4 mb-4 flex items-center justify-between">
-                  <button
-                    type="button"
-                    onClick={handlePrevMonth}
-                    className="p-2 rounded-xl bg-white hover:bg-[#06306b] hover:text-white text-[#06306b] transition-colors cursor-pointer shadow-sm"
-                    aria-label="Mois précédent"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-
-                  <div className="text-center">
-                    <span className="font-bebas text-2xl text-[#06306b] tracking-wide block">
-                      {monthNames[month]} {year}
-                    </span>
-                    <span className="text-[11px] font-archivo text-[#06306b]/70 font-semibold">
-                      Sélectionnez votre date d'arrivée puis de départ
-                    </span>
+                <div className="mb-6 grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <label htmlFor="isni-check-in" className="mb-1.5 block text-xs font-archivo font-bold uppercase tracking-wider text-[#06306b]">Date d’arrivée</label>
+                    <input id="isni-check-in" type="date" value={form.checkIn} min={todayStr}
+                      onChange={(e) => setForm((prev) => ({ ...prev, checkIn: e.target.value, checkOut: prev.checkOut && prev.checkOut <= e.target.value ? '' : prev.checkOut }))}
+                      className="w-full rounded-xl border border-[#06306b]/20 bg-white px-3.5 py-3 font-archivo text-sm text-[#06306b] focus:ring-2 focus:ring-[#f05a2d]" required />
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={handleNextMonth}
-                    className="p-2 rounded-xl bg-white hover:bg-[#06306b] hover:text-white text-[#06306b] transition-colors cursor-pointer shadow-sm"
-                    aria-label="Mois suivant"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
-                </div>
-
-                {/* Weekdays Row */}
-                <div className="grid grid-cols-7 gap-1 text-center font-archivo font-bold text-xs text-[#06306b]/70 mb-2">
-                  <span>LUN</span>
-                  <span>MAR</span>
-                  <span>MER</span>
-                  <span>JEU</span>
-                  <span>VEN</span>
-                  <span>SAM</span>
-                  <span>DIM</span>
-                </div>
-
-                {/* Calendar Grid of Days */}
-                <div className="grid grid-cols-7 gap-1.5 mb-6">
-                  {/* Empty offset spaces */}
-                  {Array.from({ length: startOffset }).map((_, idx) => (
-                    <div key={`empty-${idx}`} className="h-10 sm:h-12" />
-                  ))}
-
-                  {/* Month days */}
-                  {Array.from({ length: daysInMonth }).map((_, idx) => {
-                    const dayNum = idx + 1;
-                    const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(dayNum).padStart(2, '0')}`;
-                    const isPast = dateStr < todayStr;
-                    const rangeState = isSelectedRange(dateStr);
-
-                    let buttonClasses = 'h-10 sm:h-12 rounded-xl font-archivo text-xs sm:text-sm font-bold flex flex-col items-center justify-center transition-all cursor-pointer relative ';
-
-                    if (isPast) {
-                      buttonClasses += 'text-gray-300 bg-gray-50/50 cursor-not-allowed';
-                    } else if (rangeState === 'start' || rangeState === 'end') {
-                      buttonClasses += 'bg-[#f05a2d] text-white shadow-md scale-105 z-10';
-                    } else if (rangeState === 'middle') {
-                      buttonClasses += 'bg-[#f05a2d]/20 text-[#06306b] font-extrabold';
-                    } else {
-                      buttonClasses += 'bg-[#f2e8df]/50 hover:bg-[#cfe5d8] text-[#06306b]';
-                    }
-
-                    return (
-                      <button
-                        type="button"
-                        key={dateStr}
-                        disabled={isPast}
-                        onClick={() => handleDateClick(dateStr)}
-                        className={buttonClasses}
-                      >
-                        <span>{dayNum}</span>
-                        {rangeState === 'start' && (
-                          <span className="text-[8px] uppercase tracking-tighter leading-none -mt-0.5">Arrivée</span>
-                        )}
-                        {rangeState === 'end' && (
-                          <span className="text-[8px] uppercase tracking-tighter leading-none -mt-0.5">Départ</span>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Date display banner */}
-                <div className="bg-[#cfe5d8]/40 border border-[#1f6f78]/20 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-3 text-xs font-archivo text-[#06306b]">
-                  <div className="flex items-center gap-2">
-                    <CalendarIcon className="w-4 h-4 text-[#f05a2d]" />
-                    <span>
-                      Séjour : <strong>{form.checkIn || '...'}</strong> au <strong>{form.checkOut || '...'}</strong>
-                    </span>
+                  <div>
+                    <label htmlFor="isni-check-out" className="mb-1.5 block text-xs font-archivo font-bold uppercase tracking-wider text-[#06306b]">Date de départ</label>
+                    <input id="isni-check-out" type="date" value={form.checkOut} min={form.checkIn || todayStr}
+                      onChange={(e) => setForm((prev) => ({ ...prev, checkOut: e.target.value }))}
+                      className="w-full rounded-xl border border-[#06306b]/20 bg-white px-3.5 py-3 font-archivo text-sm text-[#06306b] focus:ring-2 focus:ring-[#f05a2d]" required />
                   </div>
-                  <span className="bg-[#1f6f78] text-white font-bold px-2.5 py-1 rounded-full text-xs">
-                    {nights} {nights > 1 ? 'nuits' : 'nuit'}
-                  </span>
                 </div>
-
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#1f6f78]/20 bg-[#cfe5d8]/40 p-4 text-xs font-archivo text-[#06306b]">
+                  <span>{form.checkIn && form.checkOut ? `Séjour du ${form.checkIn} au ${form.checkOut}` : 'Sélectionnez vos dates d’arrivée et de départ'}</span>
+                  <span className="rounded-full bg-[#1f6f78] px-3 py-1 font-bold text-white">{nights} {nights === 1 ? 'nuit' : 'nuits'}</span>
+                </div>
               </div>
 
-              {/* Room and Formula Pickers under the Calendar */}
+              {/* Room and breakfast choices */}
               <div className="mt-8 space-y-4 pt-6 border-t border-[#06306b]/10">
                 
                 {/* Room selector */}
@@ -492,14 +380,14 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                   <label className="block text-xs font-archivo font-bold text-[#06306b] uppercase tracking-wider mb-2">
                     Type de Chambre (Total 29 chambres)
                   </label>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {ROOMS.map((r) => {
                       const isRSelected = form.roomCode === r.code;
                       return (
                         <button
                           type="button"
                           key={r.code}
-                          onClick={() => setForm({ ...form, roomCode: r.code })}
+                          onClick={() => setForm((prev) => ({ ...prev, roomCode: r.code, guests: r.capacity }))}
                           className={`p-3 rounded-2xl border-2 text-left transition-all cursor-pointer ${
                             isRSelected
                               ? 'border-[#f05a2d] bg-[#f05a2d]/5 shadow-sm'
@@ -526,7 +414,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                     <button
                       type="button"
-                      onClick={() => setForm({ ...form, breakfastCode: 'none' })}
+                      onClick={() => { setForm((prev) => ({ ...prev, breakfastCode: 'none' })); onBreakfastChange('none'); }}
                       className={`p-2.5 rounded-xl border-2 text-center transition-all cursor-pointer ${
                         form.breakfastCode === 'none'
                           ? 'border-[#06306b] bg-[#06306b] text-white'
@@ -543,7 +431,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                         <button
                           type="button"
                           key={b.code}
-                          onClick={() => setForm({ ...form, breakfastCode: b.code })}
+                          onClick={() => { const code = isBSelected ? 'none' : b.code; setForm((prev) => ({ ...prev, breakfastCode: code })); onBreakfastChange(code); }}
                           className={`p-2.5 rounded-xl border-2 text-center transition-all cursor-pointer ${
                             isBSelected
                               ? 'border-[#f05a2d] bg-[#f05a2d] text-white'
@@ -584,13 +472,12 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                     </label>
                     <select
                       value={form.guests}
-                      onChange={(e) => setForm({ ...form, guests: parseInt(e.target.value) })}
+                      onChange={(e) => { const guests = parseInt(e.target.value); const matchingRoom = ROOMS.find((room) => room.capacity === guests); setForm((prev) => ({ ...prev, guests, roomCode: matchingRoom?.code ?? prev.roomCode })); }}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-[#06306b]/20 bg-white font-archivo text-xs sm:text-sm text-[#06306b] focus:ring-2 focus:ring-[#f05a2d]"
                     >
-                      <option value={1}>1 Adulte</option>
-                      <option value={2}>2 Adultes</option>
-                      <option value={3}>3 Adultes</option>
-                      <option value={4}>4 Adultes (Capacité Suite)</option>
+                      {[1, 2, 3, 4].map((count) => (
+                        <option key={count} value={count}>{count} {count > 1 ? 'Voyageurs' : 'Voyageur'}</option>
+                      ))}
                     </select>
                   </div>
 
@@ -663,6 +550,21 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
                 {submissionError && (
                   <div className="mb-4 p-3 rounded-xl bg-red-100 text-red-800 text-xs font-archivo">
                     {submissionError}
+                  </div>
+                )}
+
+                {selectedActivities.length > 0 && (
+                  <div className="bg-[#cfe5d8]/35 border border-[#1f6f78]/20 rounded-2xl p-4 mb-5">
+                    <h4 className="font-archivo font-extrabold text-xs uppercase tracking-wide text-[#06306b] mb-2">Activités demandées</h4>
+                    <ul className="space-y-1.5">
+                      {selectedActivities.map((activity) => (
+                        <li key={activity.id} className="flex items-center justify-between gap-3 text-xs font-archivo text-[#06306b]">
+                          <span>{activity.title} <strong className="text-[#1f6f78]">· Tarif à confirmer</strong></span>
+                          <button type="button" onClick={() => onToggleActivity(activity.id)} className="shrink-0 rounded-full p-1 text-[#06306b]/60 transition hover:bg-white hover:text-[#f05a2d]" aria-label={`Retirer ${activity.title}`}><X className="h-4 w-4" /></button>
+                        </li>
+                      ))}
+                    </ul>
+                    <p className="mt-2 text-[10px] text-[#06306b]/65">Les activités sont exclues du total jusqu’à confirmation du tarif par la réception.</p>
                   </div>
                 )}
 

@@ -58,7 +58,7 @@ export const BreakfastSection: React.FC<BreakfastSectionProps> = ({
 
           <div className="relative overflow-hidden bg-[#e8d9cc]">
             <img
-              src="/assets/aistudio/image_d29bca0e.png"
+              src="/assets/breakfast-menu.png"
               alt="Carte Petit-Déjeuner Apparts-Hôtel Résidence ISNI"
               className="w-full h-auto object-contain max-h-[600px] mx-auto transition-transform duration-500 group-hover:scale-[1.01]"
               referrerPolicy="no-referrer"
@@ -112,7 +112,7 @@ export const BreakfastSection: React.FC<BreakfastSectionProps> = ({
                 <div>
                   <button
                     onClick={() => {
-                      onSelectBreakfast(formula.code);
+                      onSelectBreakfast(isSelected ? 'none' : formula.code);
                       const el = document.getElementById('reservation');
                       if (el) el.scrollIntoView({ behavior: 'smooth' });
                     }}

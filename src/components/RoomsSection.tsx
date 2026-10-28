@@ -1,6 +1,6 @@
 import React from 'react';
 import { BedDouble, Users, Sparkles, Check, ArrowRight, ShieldCheck } from 'lucide-react';
-import { ROOMS } from '../data/hotelData';
+import { ACCOMMODATION_DETAILS, PROPERTY_GALLERY, ROOMS } from '../data/hotelData';
 import { RoomType } from '../types';
 
 interface RoomsSectionProps {
@@ -30,7 +30,7 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onSelectRoom }) => {
             29 CHAMBRES ET SUITES DE CHARME
           </h2>
           <p className="font-sans text-base sm:text-lg text-[#06306b]/80">
-            Trois typologies d’hébergement pensées pour les voyageurs en quête de repos, d’espace et de convivialité à Agadir.
+            Les tarifs suivent le barème fourni. Découvrez aussi les configurations et équipements de nos studios et appartements.
           </p>
         </div>
 
@@ -46,23 +46,20 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onSelectRoom }) => {
               >
                 {/* Image side (6 cols) */}
                 <div 
-                  className={`lg:col-span-6 relative min-h-[320px] sm:min-h-[400px] overflow-hidden ${
+                  className={`image-drift-frame lg:col-span-6 relative min-h-[320px] sm:min-h-[400px] overflow-hidden ${
                     isReversed ? 'lg:order-2' : 'lg:order-1'
                   }`}
                 >
                   <img
                     src={room.image}
                     alt={room.name}
-                    className="w-full h-full object-cover transition-transform duration-700 hover:scale-105"
+                    className="image-drift w-full h-full object-cover transition-transform duration-700 hover:scale-105"
                     referrerPolicy="no-referrer"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent pointer-events-none" />
                   
                   {/* Floating badges on photo */}
                   <div className="absolute top-4 left-4 flex flex-wrap gap-2">
-                    <span className="bg-[#f05a2d] text-white font-archivo text-xs font-black uppercase px-3 py-1 rounded-full shadow-md">
-                      {room.inventory} Chambres disponibles
-                    </span>
                     <span className="bg-white/90 text-[#06306b] font-archivo text-xs font-bold px-2.5 py-1 rounded-full shadow-sm flex items-center gap-1">
                       <Users className="w-3.5 h-3.5 text-[#f05a2d]" />
                       Jusqu’à {room.capacity} pers.
@@ -128,6 +125,47 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onSelectRoom }) => {
               </div>
             );
           })}
+        </div>
+
+        <div className="mt-20">
+          <div className="mx-auto mb-9 max-w-3xl text-center">
+            <span className="font-marker text-sm text-[#f05a2d]">Descriptifs de la résidence</span>
+            <h3 className="font-bebas text-4xl text-[#06306b] sm:text-5xl">STUDIOS & APPARTEMENTS</h3>
+            <p className="mt-2 text-sm leading-6 text-[#06306b]/70">Les équipements et superficies ci-dessous reprennent les informations de la résidence. Le tarif dépend du nombre de personnes, selon le barème affiché plus haut.</p>
+          </div>
+          <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {ACCOMMODATION_DETAILS.map((stay) => (
+              <article key={stay.title} className="group overflow-hidden rounded-3xl border border-[#06306b]/10 bg-white shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-2xl">
+                <div className="image-drift-frame relative aspect-[16/10] overflow-hidden">
+                  <img src={stay.image} alt={`Espace de la Résidence ISNI · ${stay.title}`} loading="lazy" className="image-drift h-full w-full object-cover transition duration-700 group-hover:scale-105" />
+                  <span className="absolute bottom-4 left-4 rounded-full bg-white/90 px-3 py-1 font-archivo text-xs font-bold text-[#06306b] backdrop-blur">{stay.area}</span>
+                </div>
+                <div className="p-6">
+                  <h4 className="font-bebas text-2xl tracking-wide text-[#06306b]">{stay.title}</h4>
+                  <p className="mt-3 text-sm leading-6 text-[#06306b]/75">{stay.description}</p>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+
+        <div className="mt-20">
+          <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+            <div>
+              <span className="font-marker text-sm text-[#f05a2d]">Un aperçu des lieux</span>
+              <h3 className="font-bebas text-4xl text-[#06306b] sm:text-5xl">LA RÉSIDENCE EN IMAGES</h3>
+            </div>
+            <p className="max-w-md text-sm leading-6 text-[#06306b]/70">Découvrez les espaces et équipements présentés par la Résidence ISNI.</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-12">
+            {PROPERTY_GALLERY.map((photo, index) => (
+              <figure key={photo.src} className={`image-drift-frame group relative aspect-[4/3] overflow-hidden rounded-2xl bg-[#e8d9cc] shadow-lg ${index === 0 || index === 3 ? 'lg:col-span-5' : 'lg:col-span-3'}`}>
+                <img src={photo.src} alt={photo.alt} loading="lazy" className="image-drift h-full w-full object-cover transition duration-700 group-hover:scale-105 group-hover:blur-[1px]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#06306b]/70 via-transparent to-transparent opacity-70 transition-opacity group-hover:opacity-90" />
+                <figcaption className="absolute bottom-3 left-4 font-bebas text-xl tracking-wide text-white sm:bottom-4 sm:left-5 sm:text-2xl">{photo.label}</figcaption>
+              </figure>
+            ))}
+          </div>
         </div>
 
       </div>

@@ -1,27 +1,13 @@
 import React from 'react';
-import { Calendar, Compass, Sun, MapPin, Sparkles, ArrowRight } from 'lucide-react';
+import { Calendar, Compass, MapPin, ArrowRight } from 'lucide-react';
 import { ROOMS } from '../data/hotelData';
 
 interface HeroProps {
-  onQuickBook: (checkIn: string, checkOut: string, roomCode: string) => void;
+  onReserve: () => void;
   onExploreRooms: () => void;
 }
 
-export const Hero: React.FC<HeroProps> = ({ onQuickBook, onExploreRooms }) => {
-  const tomorrow = new Date();
-  tomorrow.setDate(tomorrow.getDate() + 1);
-  const in3Days = new Date();
-  in3Days.setDate(in3Days.getDate() + 4);
-
-  const [checkIn, setCheckIn] = React.useState(tomorrow.toISOString().split('T')[0]);
-  const [checkOut, setCheckOut] = React.useState(in3Days.toISOString().split('T')[0]);
-  const [roomCode, setRoomCode] = React.useState('standard');
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    onQuickBook(checkIn, checkOut, roomCode);
-  };
-
+export const Hero: React.FC<HeroProps> = ({ onReserve, onExploreRooms }) => {
   return (
     <section id="hero" className="relative bg-[#f2e8df] pt-6 pb-16 lg:pb-24 overflow-hidden border-b border-[#06306b]/10">
       
@@ -30,7 +16,7 @@ export const Hero: React.FC<HeroProps> = ({ onQuickBook, onExploreRooms }) => {
         aria-hidden="true" 
         className="ghost-title absolute top-0 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-40 pointer-events-none select-none z-0"
       >
-        DESERT SURF CAMP
+        RÉSIDENCE ISNI
       </div>
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
@@ -62,17 +48,17 @@ export const Hero: React.FC<HeroProps> = ({ onQuickBook, onExploreRooms }) => {
 
             {/* Description */}
             <p className="font-sans text-base sm:text-lg text-[#06306b]/85 max-w-xl mb-8 leading-relaxed">
-              Bienvenue à la <strong className="font-semibold text-[#06306b]">Résidence ISNI</strong>, votre appart-hôtel de 29 chambres au cœur d’Agadir. Entre vagues atlantiques, rooftop ensoleillé, excursions dans le Petit Sahara et formules petit-déjeuner traditionnelles.
+              Bienvenue à la <strong className="font-semibold text-[#06306b]">Résidence ISNI</strong>, votre appart-hôtel de 29 chambres au cœur d’Agadir. Un hébergement moderne et fonctionnel pour les séjours de loisirs ou d’affaires. Profitez d’un emplacement central, à proximité des commerces, cafés, musées et attractions d’Agadir.
             </p>
 
             {/* Action buttons */}
             <div className="flex flex-wrap items-center gap-4">
               <button
-                onClick={() => onQuickBook(checkIn, checkOut, roomCode)}
+                onClick={onReserve}
                 className="px-7 py-3.5 bg-[#f05a2d] hover:bg-[#d44519] text-white font-archivo font-black text-sm uppercase tracking-wider rounded-full shadow-lg hover:shadow-xl transition-all cursor-pointer flex items-center gap-2.5 active:scale-95"
               >
                 <Calendar className="w-4 h-4" />
-                <span>Réserver en Direct (Dès 450 MAD)</span>
+                <span>Composer mon séjour · dès 320 MAD</span>
               </button>
 
               <button
@@ -119,86 +105,24 @@ export const Hero: React.FC<HeroProps> = ({ onQuickBook, onExploreRooms }) => {
             {/* Photo Card with Desert Surf Camp border */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#06306b] group">
               <img
-                src="/src/assets/images/hero_agadir_surf_camp_1793212941609.jpg"
-                alt="Résidence ISNI Rooftop et Surf Camp à Agadir"
-                className="w-full h-[380px] sm:h-[460px] object-cover transition-transform duration-700 group-hover:scale-105"
+                src="/assets/images/isni/family-suite.jpg"
+                alt="Salon et coin repas d’une suite de la Résidence ISNI"
+                className="image-drift h-[380px] w-full object-cover transition-transform duration-700 group-hover:scale-105 sm:h-[460px]"
                 referrerPolicy="no-referrer"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#06306b]/70 via-transparent to-transparent pointer-events-none" />
               <div className="absolute bottom-4 left-4 right-4 text-white z-10">
                 <span className="font-marker text-xs text-[#f29acb] uppercase tracking-wider block">
-                  Rooftop & Chill Lounge
+                  Espaces de vie ISNI
                 </span>
                 <p className="font-bebas text-2xl tracking-wide leading-tight">
-                  Vue imprenable & départs surf quotidiens
+                  Des espaces pensés pour votre séjour à Agadir
                 </p>
               </div>
             </div>
 
           </div>
 
-        </div>
-
-        {/* Quick Booking Strip (Floating at bottom of hero) */}
-        <div className="mt-4 bg-white/95 backdrop-blur-sm rounded-2xl sm:rounded-3xl p-4 sm:p-6 shadow-xl border border-[#06306b]/10 max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-            
-            <div>
-              <label className="block text-xs font-archivo font-bold text-[#06306b] uppercase tracking-wider mb-1.5">
-                Date d’Arrivée
-              </label>
-              <input
-                type="date"
-                value={checkIn}
-                min={new Date().toISOString().split('T')[0]}
-                onChange={(e) => setCheckIn(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#06306b]/20 bg-[#f2e8df]/30 font-archivo text-xs sm:text-sm text-[#06306b] focus:outline-none focus:ring-2 focus:ring-[#f05a2d]"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-archivo font-bold text-[#06306b] uppercase tracking-wider mb-1.5">
-                Date de Départ
-              </label>
-              <input
-                type="date"
-                value={checkOut}
-                min={checkIn || new Date().toISOString().split('T')[0]}
-                onChange={(e) => setCheckOut(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#06306b]/20 bg-[#f2e8df]/30 font-archivo text-xs sm:text-sm text-[#06306b] focus:outline-none focus:ring-2 focus:ring-[#f05a2d]"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-archivo font-bold text-[#06306b] uppercase tracking-wider mb-1.5">
-                Catégorie Chambre
-              </label>
-              <select
-                value={roomCode}
-                onChange={(e) => setRoomCode(e.target.value)}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#06306b]/20 bg-[#f2e8df]/30 font-archivo text-xs sm:text-sm text-[#06306b] focus:outline-none focus:ring-2 focus:ring-[#f05a2d]"
-              >
-                {ROOMS.map((r) => (
-                  <option key={r.code} value={r.code}>
-                    {r.name} ({r.priceMAD} MAD)
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <button
-                type="submit"
-                className="w-full py-2.5 sm:py-3 bg-[#f05a2d] hover:bg-[#d44519] text-white font-archivo font-black text-xs sm:text-sm uppercase tracking-wider rounded-xl shadow-md transition-all cursor-pointer flex items-center justify-center gap-2 active:scale-95"
-              >
-                <Compass className="w-4 h-4" />
-                <span>Vérifier & Réserver</span>
-              </button>
-            </div>
-
-          </form>
         </div>
 
       </div>

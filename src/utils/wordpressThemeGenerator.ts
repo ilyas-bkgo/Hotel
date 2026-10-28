@@ -89,6 +89,43 @@ body {
   overflow: hidden;
   box-shadow: 0 10px 30px rgba(6, 48, 107, 0.06);
 }
+.isni-preloader { position:fixed;inset:0;z-index:99999;display:grid;place-items:center;overflow:hidden;background:#063b4c;color:#fff;transition:opacity .36s ease,visibility .36s ease; }
+.isni-preloader.is-leaving { opacity:0;visibility:hidden; }
+.isni-preloader-backdrop { position:absolute;inset:-4%;background-size:cover;background-position:center 54%;animation:isni-loader-scene 16s ease-in-out infinite alternate; }
+.isni-preloader-content { position:relative;z-index:2;display:flex;align-items:center;flex-direction:column;padding:28px;text-align:center;text-shadow:0 2px 24px rgba(0,25,38,.45); }
+.isni-preloader-mark { display:grid;place-items:center;width:58px;height:58px;margin-bottom:20px;border-radius:50%;background:#f2e8df;color:#063b4c;font-size:1.5rem;animation:isni-loader-float 2.8s ease-in-out infinite; }
+.isni-preloader-kicker { margin:0 0 8px;color:#f6c89c;font-size:12px;font-weight:700;letter-spacing:.24em;text-transform:uppercase; }
+.isni-preloader-title { margin:0;font-family:'Bebas Neue',sans-serif;font-size:clamp(3.2rem,10vw,7rem);line-height:.88;letter-spacing:.035em; }
+.isni-preloader-caption { margin:15px 0 30px;color:rgba(255,255,255,.9); }
+.isni-preloader-board { width:88px;height:15px;margin-bottom:35px;border:2px solid rgba(255,255,255,.9);border-radius:100%;background:linear-gradient(90deg,#f05a2d 0 20%,#f2e8df 20% 80%,#f05a2d 80%);animation:isni-loader-board 2.2s ease-in-out infinite; }
+.isni-preloader-progress { width:min(180px,55vw);height:2px;overflow:hidden;background:rgba(255,255,255,.3); }
+.isni-preloader-progress span { display:block;width:40%;height:100%;background:#f2e8df;animation:isni-loader-progress 1.05s cubic-bezier(.45,0,.35,1) forwards; }
+.isni-preloader-waves { position:absolute;z-index:1;inset:auto 0 -1px;width:100%;height:clamp(150px,27vh,280px); }
+.isni-wave-back { transform-box:fill-box;transform-origin:center;animation:isni-loader-wave-back 8s ease-in-out infinite alternate; }
+.isni-wave-front { transform-box:fill-box;transform-origin:center;animation:isni-loader-wave-front 6.5s ease-in-out infinite alternate; }
+@keyframes isni-loader-scene { to { transform:scale(1.08) translate3d(1%,-1%,0); } }
+@keyframes isni-loader-float { 50% { transform:translateY(-5px) rotate(-4deg); } }
+@keyframes isni-loader-board { 50% { transform:translate3d(20px,-8px,0) rotate(5deg); } }
+@keyframes isni-loader-progress { from { transform:translateX(-115%); } to { transform:translateX(260%); } }
+@keyframes isni-loader-wave-back { to { transform:translate3d(-2%,7px,0) scaleY(1.08); } }
+@keyframes isni-loader-wave-front { to { transform:translate3d(2%,-8px,0) scaleY(.96); } }
+@media (prefers-reduced-motion:reduce) { .isni-preloader,.isni-preloader * { animation-duration:.01ms!important;animation-iteration-count:1!important; } }
+.isni-image-drift { overflow:hidden; isolation:isolate; }
+.isni-image-drift img { animation:isni-image-swell 18s ease-in-out infinite alternate; transition:filter .5s ease,transform .7s ease; }
+.isni-image-drift:hover img { filter:blur(1px) saturate(1.08); }
+@keyframes isni-image-swell { from { transform:scale(1.04) translate3d(-.5%,0,0); } to { transform:scale(1.1) translate3d(.7%,-1%,0); } }
+.isni-surf-menu:focus-within > div { display: block !important; }
+@keyframes isni-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: translateY(0); } }
+body.page-template-page-surf-debutant main > section, body.page-template-page-surf-intermediaire main > section { animation: isni-rise .65s ease both; }
+body.page-template-page-surf-debutant main > section:nth-child(2), body.page-template-page-surf-intermediaire main > section:nth-child(2) { animation-delay: .1s; }
+body.page-template-page-surf-debutant main > section:nth-child(3), body.page-template-page-surf-intermediaire main > section:nth-child(3) { animation-delay: .18s; }
+.isni-surf-menu > div a:hover { background: #f2e8df; color: #f05a2d !important; border-radius: 8px; }
+@media (max-width: 900px) {
+  .isni-top-bar > div { flex-wrap: wrap; gap: 12px !important; }
+  .isni-nav { flex-wrap: wrap; gap: 10px 16px !important; }
+  .isni-nav a, .isni-surf-menu { font-size: .82rem !important; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
 `;
 
   const functionsPhp = `<?php
@@ -130,11 +167,21 @@ function isni_enqueue_scripts() {
         'ajaxUrl'   => admin_url('admin-ajax.php'),
         'nonce'     => wp_create_nonce('isni_booking_nonce'),
         'sheetUrl'  => get_option('isni_sheet_url', ''),
+        'whatsapp'  => get_option('isni_whatsapp', '+212 528 820 467'),
         'rooms'     => isni_get_rooms(),
         'breakfast' => isni_get_breakfast()
     ));
 }
 add_action('wp_enqueue_scripts', 'isni_enqueue_scripts');
+
+function isni_create_surf_pages() {
+    foreach (array('debutant' => 'Surf Débutant', 'intermediaire' => 'Surf Intermédiaire') as $slug => $title) {
+        if (!get_page_by_path('surf-' . $slug)) {
+            wp_insert_post(array('post_type' => 'page', 'post_status' => 'publish', 'post_title' => $title, 'post_name' => 'surf-' . $slug));
+        }
+    }
+}
+add_action('after_switch_theme', 'isni_create_surf_pages');
 
 // 2. Custom Post Type: isni_booking
 function isni_register_cpt_booking() {
@@ -195,15 +242,15 @@ function isni_render_settings_page() {
             <table class="form-table">
                 <tr>
                     <th scope="row">Téléphone</th>
-                    <td><input type="text" name="isni_phone" value="<?php echo esc_attr(get_option('isni_phone', '+212 5 28 84 21 00')); ?>" class="regular-text"></td>
+                    <td><input type="text" name="isni_phone" value="<?php echo esc_attr(get_option('isni_phone', '+212 528 820 467')); ?>" class="regular-text"></td>
                 </tr>
                 <tr>
                     <th scope="row">WhatsApp</th>
-                    <td><input type="text" name="isni_whatsapp" value="<?php echo esc_attr(get_option('isni_whatsapp', '+212 6 61 24 55 88')); ?>" class="regular-text"></td>
+                    <td><input type="text" name="isni_whatsapp" value="<?php echo esc_attr(get_option('isni_whatsapp', '+212 528 820 467')); ?>" class="regular-text"></td>
                 </tr>
                 <tr>
                     <th scope="row">Email de réception</th>
-                    <td><input type="email" name="isni_email" value="<?php echo esc_attr(get_option('isni_email', get_bloginfo('admin_email'))); ?>" class="regular-text"></td>
+                    <td><input type="email" name="isni_email" value="<?php echo esc_attr(get_option('isni_email', 'contact@residence-isni.ma')); ?>" class="regular-text"></td>
                 </tr>
                 <tr>
                     <th scope="row">Adresse</th>
@@ -217,15 +264,15 @@ function isni_render_settings_page() {
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row">Chambres (code|Nom|quantité|prix MAD|description)</th>
+                    <th scope="row">Chambres (code|Nom|capacité|prix MAD/nuit|description)</th>
                     <td>
-                        <textarea name="isni_rooms_data" rows="5" class="large-text"><?php echo esc_textarea(get_option('isni_rooms_data', "standard|Chambre Standard|15|450|Chambre lumineuse idéale pour surfeurs et couples\nconfort|Chambre Confort|10|600|Plus spacieuse avec balcon vue ville et salon\nsuite|Suite Appart-Hôtel|4|900|Suite avec grand salon marocain et kitchenette")); ?></textarea>
+                        <textarea name="isni_rooms_data" rows="5" class="large-text"><?php echo esc_textarea(get_option('isni_rooms_data', "simple|Chambre simple · 1 personne|1|320|Tarif par nuit selon le barème fourni\ndouble|Chambre double · 2 personnes|2|420|Tarif par nuit selon le barème fourni\ntriple|Chambre triple · 3 personnes|3|480|Tarif par nuit selon le barème fourni\nquadruple|Chambre quadruple · 4 personnes|4|520|Tarif par nuit selon le barème fourni")); ?></textarea>
                     </td>
                 </tr>
                 <tr>
-                    <th scope="row">Activités (Nom|Prix|Description)</th>
+                    <th scope="row">Activités (une ligne par niveau : Nom|Prix|Description)</th>
                     <td>
-                        <textarea name="isni_activities_data" rows="5" class="large-text"><?php echo esc_textarea(get_option('isni_activities_data', "Cours de Surf & Coaching|350 DH (Sur demande)|Cours 2h + free surf avec matériel fourni\nExcursion Petit Sahara|250 DH (25 €)|4x4 dans les dunes se jetant dans l'océan\nCoaching Surfskate|150 DH (15 €)|Perfectionnement virages sur la promenade\nParadise Valley Randonnée|200 DH (20 €)|Baignade dans les vasques turquoise de l'Atlas")); ?></textarea>
+                        <textarea name="isni_activities_data" rows="3" class="large-text"><?php echo esc_textarea(get_option('isni_activities_data', "Surf · Débutant · Taghazout|Tarif à confirmer|Sortie de surf encadrée avec transport, planche, combinaison et déjeuner annoncés sur l’affiche\nSurf · Intermédiaire · Taghazout|Tarif à confirmer|Sortie de surf encadrée avec transport, planche, combinaison et déjeuner annoncés sur l’affiche")); ?></textarea>
                     </td>
                 </tr>
                 <tr>
@@ -243,7 +290,7 @@ function isni_render_settings_page() {
 
 // 4. Data Helpers
 function isni_get_rooms() {
-    $raw = get_option('isni_rooms_data', "standard|Chambre Standard|15|450|Chambre lumineuse\nconfort|Chambre Confort|10|600|Spacieuse avec balcon\nsuite|Suite Appart-Hôtel|4|900|Suite complète");
+    $raw = get_option('isni_rooms_data', "simple|Chambre simple · 1 personne|1|320|Tarif par nuit selon le barème fourni\ndouble|Chambre double · 2 personnes|2|420|Tarif par nuit selon le barème fourni\ntriple|Chambre triple · 3 personnes|3|480|Tarif par nuit selon le barème fourni\nquadruple|Chambre quadruple · 4 personnes|4|520|Tarif par nuit selon le barème fourni");
     $lines = explode("\n", trim($raw));
     $rooms = array();
     foreach ($lines as $line) {
@@ -252,7 +299,7 @@ function isni_get_rooms() {
             $rooms[$parts[0]] = array(
                 'code'        => $parts[0],
                 'name'        => $parts[1],
-                'quantity'    => intval($parts[2]),
+                'capacity'    => intval($parts[2]),
                 'price'       => floatval($parts[3]),
                 'description' => $parts[4]
             );
@@ -281,47 +328,10 @@ function isni_get_breakfast() {
 
 // 5. AJAX Availability Endpoint
 function isni_ajax_avail() {
-    $room_code = sanitize_text_field($_GET['room'] ?? 'standard');
-    $rooms = isni_get_rooms();
-    $capacity = isset($rooms[$room_code]) ? $rooms[$room_code]['quantity'] : 15;
-
-    $query = new WP_Query(array(
-        'post_type'      => 'isni_booking',
-        'post_status'    => 'publish',
-        'posts_per_page' => -1,
-        'meta_query'     => array(
-            array('key' => '_isni_room', 'value' => $room_code),
-            array('key' => '_isni_status', 'value' => 'annulee', 'compare' => '!=')
-        )
-    ));
-
-    $booked_dates = array();
-    while ($query->have_posts()) {
-        $query->the_post();
-        $in = get_post_meta(get_the_ID(), '_isni_check_in', true);
-        $out = get_post_meta(get_the_ID(), '_isni_check_out', true);
-        if ($in && $out) {
-            $curr = strtotime($in);
-            $end = strtotime($out);
-            while ($curr < $end) {
-                $d = date('Y-m-d', $curr);
-                $booked_dates[$d] = ($booked_dates[$d] ?? 0) + 1;
-                $curr = strtotime('+1 day', $curr);
-            }
-        }
-    }
-    wp_reset_postdata();
-
-    $fully_booked = array();
-    foreach ($booked_dates as $date => $cnt) {
-        if ($cnt >= $capacity) {
-            $fully_booked[] = $date;
-        }
-    }
-
     wp_send_json_success(array(
-        'room' => $room_code,
-        'fullyBookedDates' => $fully_booked
+        'room' => sanitize_text_field($_GET['room'] ?? 'double'),
+        'fullyBookedDates' => array(),
+        'message' => 'La disponibilité est confirmée par la réception après réception de la demande.'
     ));
 }
 add_action('wp_ajax_isni_avail', 'isni_ajax_avail');
@@ -342,12 +352,13 @@ function isni_ajax_book() {
     $name    = sanitize_text_field($_POST['full_name'] ?? '');
     $email   = sanitize_email($_POST['email'] ?? '');
     $phone   = sanitize_text_field($_POST['phone'] ?? '');
-    $room    = sanitize_text_field($_POST['room_type'] ?? 'standard');
+    $room    = sanitize_text_field($_POST['room_type'] ?? 'double');
     $check_in= sanitize_text_field($_POST['check_in'] ?? '');
     $check_out= sanitize_text_field($_POST['check_out'] ?? '');
     $guests  = max(1, intval($_POST['guests'] ?? 1));
     $bf_code = sanitize_text_field($_POST['breakfast'] ?? 'none');
     $notes   = sanitize_textarea_field($_POST['notes'] ?? '');
+    $activities = sanitize_text_field($_POST['activities'] ?? '');
 
     if (empty($name) || empty($email) || empty($phone) || empty($check_in) || empty($check_out)) {
         wp_send_json_error(array('message' => 'Veuillez remplir tous les champs obligatoires.'));
@@ -368,7 +379,13 @@ function isni_ajax_book() {
 
     // Calculate total price server-side
     $rooms = isni_get_rooms();
-    $room_price_night = isset($rooms[$room]) ? $rooms[$room]['price'] : 450;
+    if (!isset($rooms[$room])) {
+        wp_send_json_error(array('message' => 'Veuillez choisir un type de chambre valide.'));
+    }
+    if ($guests > $rooms[$room]['capacity']) {
+        wp_send_json_error(array('message' => 'Le nombre de voyageurs dépasse la capacité de la chambre choisie.'));
+    }
+    $room_price_night = $rooms[$room]['price'];
     $breakfasts = isni_get_breakfast();
     $bf_price_person = isset($breakfasts[$bf_code]) ? $breakfasts[$bf_code]['price'] : 0;
 
@@ -397,9 +414,10 @@ function isni_ajax_book() {
     update_post_meta($post_id, '_isni_total_mad', $total);
     update_post_meta($post_id, '_isni_status', 'en_attente');
     update_post_meta($post_id, '_isni_notes', $notes);
+    update_post_meta($post_id, '_isni_activities', $activities);
 
     // Send email to admin
-    $admin_email = get_option('isni_email', get_bloginfo('admin_email'));
+    $admin_email = get_option('isni_email', 'contact@residence-isni.ma');
     $subject = "Nouvelle demande de réservation Résidence ISNI - " . $name;
     $body = "Nouvelle réservation reçue :\\n\\n"
           . "Nom : $name\\n"
@@ -409,6 +427,7 @@ function isni_ajax_book() {
           . "Dates : du $check_in au $check_out ($nights nuits)\\n"
           . "Personnes : $guests\\n"
           . "Formule Petit-déjeuner : $bf_code\\n"
+          . "Activités demandées : $activities\\n"
           . "Total estimé : $total MAD\\n"
           . "Notes : $notes\\n\\n"
           . "Gérer la réservation : " . admin_url('post.php?post=' . $post_id . '&action=edit');
@@ -416,6 +435,7 @@ function isni_ajax_book() {
 
     // Sync to Google Sheet via Google Apps Script Web App URL
     $sheet_url = get_option('isni_sheet_url', '');
+    $sheet_sync_warning = empty($sheet_url);
     if (!empty($sheet_url)) {
         $sheet_payload = array(
             'id'            => 'ISNI-' . $post_id,
@@ -423,30 +443,46 @@ function isni_ajax_book() {
             'fullName'      => $name,
             'email'         => $email,
             'phone'         => $phone,
-            'roomType'      => $room,
+            'roomType'      => $rooms[$room]['name'],
+            'roomCode'      => $room,
             'checkIn'       => $check_in,
             'checkOut'      => $check_out,
             'nights'        => $nights,
             'guests'        => $guests,
-            'breakfast'     => $bf_code,
+            'breakfast'     => isset($breakfasts[$bf_code]) ? $breakfasts[$bf_code]['name'] : 'Sans petit-déjeuner',
+            'breakfastCode' => $bf_code,
+            'roomPriceMAD'  => $nights * $room_price_night,
+            'breakfastPriceMAD' => $nights * $bf_price_person * $guests,
+            'activities'    => $activities,
             'totalPriceMAD' => $total,
             'status'        => 'en_attente',
             'notes'         => $notes
         );
 
-        wp_remote_post($sheet_url, array(
+        $sheet_response = wp_remote_post($sheet_url, array(
             'headers'     => array('Content-Type' => 'application/json; charset=utf-8'),
             'body'        => wp_json_encode($sheet_payload),
             'method'      => 'POST',
             'data_format' => 'body',
             'timeout'     => 15,
-            'blocking'    => false // Asynchronous so user is not kept waiting
+            'blocking'    => true
         ));
+        if (is_wp_error($sheet_response) || wp_remote_retrieve_response_code($sheet_response) >= 400) {
+            $sheet_sync_warning = true;
+            error_log('ISNI Google Sheets sync failed for booking ISNI-' . $post_id . ': ' . (is_wp_error($sheet_response) ? $sheet_response->get_error_message() : wp_remote_retrieve_response_code($sheet_response)));
+        } else {
+            $sheet_result = json_decode(wp_remote_retrieve_body($sheet_response), true);
+            if (!is_array($sheet_result) || ($sheet_result['status'] ?? '') !== 'success') {
+                $sheet_sync_warning = true;
+                error_log('ISNI Google Sheets webhook did not confirm booking ISNI-' . $post_id . '.');
+            }
+        }
     }
 
     wp_send_json_success(array(
         'bookingId' => 'ISNI-' . $post_id,
-        'message'   => 'Votre demande de réservation a bien été reçue ! Notre équipe vous confirmera la disponibilité sous 2 heures.',
+        'message'   => 'Votre demande a été enregistrée dans WordPress. La résidence vous contactera pour confirmer la disponibilité.',
+        'sheetSyncWarning' => $sheet_sync_warning,
         'totalMAD'  => $total
     ));
 }
@@ -472,18 +508,24 @@ add_action('wp_ajax_nopriv_isni_book', 'isni_ajax_book');
         </a>
 
         <nav class="isni-nav" style="display:flex;align-items:center;gap:24px;">
-            <a href="#pourquoi" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Pourquoi</a>
-            <a href="#chambres" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Chambres</a>
-            <a href="#activites" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Activités</a>
-            <a href="#petit-dejeuner" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Petit-Déjeuner</a>
-            <a href="#a-savoir" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">À Savoir</a>
+            <a href="<?php echo esc_url(home_url('/#pourquoi')); ?>" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Pourquoi</a>
+            <a href="<?php echo esc_url(home_url('/#chambres')); ?>" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Chambres</a>
+            <div class="isni-surf-menu" style="position:relative;display:inline-flex;align-items:center;gap:6px;color:#06306b;font-weight:600;font-size:.95rem;cursor:pointer;">
+                <span tabindex="0">Surf⌄</span>
+                <div style="display:none;position:absolute;top:100%;left:0;min-width:180px;padding:8px;background:#fff;border-radius:12px;box-shadow:0 12px 28px rgba(6,48,107,.18);">
+                    <a href="<?php echo esc_url(home_url('/surf-debutant/')); ?>" style="display:block;padding:10px 12px;color:#06306b;text-decoration:none;">Débutant</a>
+                    <a href="<?php echo esc_url(home_url('/surf-intermediaire/')); ?>" style="display:block;padding:10px 12px;color:#06306b;text-decoration:none;">Intermédiaire</a>
+                </div>
+            </div>
+            <a href="<?php echo esc_url(home_url('/#petit-dejeuner')); ?>" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">Petit-Déjeuner</a>
+            <a href="<?php echo esc_url(home_url('/#a-savoir')); ?>" style="color:#06306b;text-decoration:none;font-weight:600;font-size:0.95rem;">À Savoir</a>
         </nav>
 
-        <div>
-            <a href="#reservation" class="btn-primary" style="padding:10px 22px;font-size:0.9rem;">Réserver</a>
-        </div>
     </div>
 </header>
+<script>
+document.addEventListener('DOMContentLoaded', function(){ const menu=document.querySelector('.isni-surf-menu'); if(!menu)return; const panel=menu.querySelector('div'); const trigger=menu.querySelector('span'); trigger.addEventListener('click',function(){panel.style.display=panel.style.display==='block'?'none':'block';}); menu.addEventListener('mouseenter',function(){panel.style.display='block';}); menu.addEventListener('mouseleave',function(){panel.style.display='none';}); });
+</script>
 `;
 
   const footerPhp = `<footer style="background:#06306b;color:#f2e8df;padding:64px 24px 32px;margin-top:64px;">
@@ -493,28 +535,27 @@ add_action('wp_ajax_nopriv_isni_book', 'isni_ajax_book');
                 RÉSIDENCE ISNI
             </h3>
             <p style="color:#cfe5d8;max-width:320px;margin-bottom:20px;font-size:0.95rem;">
-                Appart-Hôtel de charme et camp surf au cœur d'Agadir. 29 chambres chaleureuses pour vivre le Maroc authentique entre vagues et soleil.
+                Appart-hôtel à Agadir avec chambres de 1 à 4 personnes, petit-déjeuner en option et sortie surf à Taghazout sur demande.
             </p>
-            <p style="color:#f29acb;font-weight:700;">Avenue Allal Ben Abdellah, Agadir 80000</p>
+            <p style="color:#f29acb;font-weight:700;"><?php echo esc_html(get_option('isni_address', 'Avenue Allal Ben Abdellah, Agadir')); ?></p>
         </div>
 
         <div>
             <h4 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#f05a2d;letter-spacing:0.05em;margin-bottom:16px;">
                 CONTACT & WHATSAPP
             </h4>
-            <p style="margin-bottom:8px;">Téléphone : <a href="tel:<?php echo esc_attr(get_option('isni_phone', '+212528842100')); ?>" style="color:#ffffff;text-decoration:none;"><?php echo esc_html(get_option('isni_phone', '+212 5 28 84 21 00')); ?></a></p>
-            <p style="margin-bottom:8px;">WhatsApp : <a href="https://wa.me/<?php echo esc_attr(str_replace(array(' ','+'), '', get_option('isni_whatsapp', '212661245588'))); ?>" style="color:#ffffff;text-decoration:none;"><?php echo esc_html(get_option('isni_whatsapp', '+212 6 61 24 55 88')); ?></a></p>
-            <p style="margin-bottom:8px;">Email : <a href="mailto:<?php echo esc_attr(get_option('isni_email', 'contact@residence-isni.ma')); ?>" style="color:#ffffff;text-decoration:none;"><?php echo esc_html(get_option('isni_email', 'contact@residence-isni.ma')); ?></a></p>
+            <p style="margin-bottom:8px;">Téléphone : <a href="tel:<?php echo esc_attr(get_option('isni_phone', '+212528820467')); ?>" style="color:#ffffff;text-decoration:none;"><?php echo esc_html(get_option('isni_phone', '+212 528 820 467')); ?></a></p>
+            <p style="margin-bottom:8px;">WhatsApp : <a href="https://wa.me/<?php echo esc_attr(preg_replace('/[^0-9]/', '', get_option('isni_whatsapp', '+212528820467'))); ?>" style="color:#ffffff;text-decoration:none;"><?php echo esc_html(get_option('isni_whatsapp', '+212 528 820 467')); ?></a></p>
+            <p style="margin-bottom:8px;">E-mail : <a href="mailto:<?php echo esc_attr(get_option('isni_email', 'contact@residence-isni.ma')); ?>" style="color:#ffffff;text-decoration:none;"><?php echo esc_html(get_option('isni_email', 'contact@residence-isni.ma')); ?></a></p>
         </div>
 
         <div>
             <h4 style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#f05a2d;letter-spacing:0.05em;margin-bottom:16px;">
                 INFOS PRATIQUES
             </h4>
-            <p style="color:#cfe5d8;margin-bottom:8px;">• Check-in dès 14h00 / Check-out 12h00</p>
-            <p style="color:#cfe5d8;margin-bottom:8px;">• Local à planches sécurisé & rinçage</p>
-            <p style="color:#cfe5d8;margin-bottom:8px;">• Navettes Taghazout, Anza & Imsouane</p>
-            <p style="color:#cfe5d8;margin-bottom:8px;">• Petit-déjeuner servi dès 07h30</p>
+            <p style="color:#cfe5d8;margin-bottom:8px;">• Wi-Fi gratuit</p>
+            <p style="color:#cfe5d8;margin-bottom:8px;">• Kitchenette et réfrigérateur dans les logements</p>
+            <p style="color:#cfe5d8;margin-bottom:8px;">• Petit-déjeuner en supplément</p>
         </div>
     </div>
 
@@ -523,6 +564,24 @@ add_action('wp_ajax_nopriv_isni_book', 'isni_ajax_book');
         <p>Inspiré par le lifestyle surf marocain</p>
     </div>
 </footer>
+
+<div id="isni-preloader" class="isni-preloader" role="status" aria-live="polite" aria-label="Chargement de la Résidence ISNI">
+    <div class="isni-preloader-backdrop" style="background-image:linear-gradient(180deg,rgba(3,31,47,.34),rgba(3,31,47,.62)),url('<?php echo esc_url(get_template_directory_uri() . '/assets/images/surf_lesson_taghazout_1793212942727.jpg'); ?>');"></div>
+    <div class="isni-preloader-content">
+        <div class="isni-preloader-mark" aria-hidden="true">≈</div>
+        <p class="isni-preloader-kicker">Agadir · Maroc</p>
+        <h1 class="isni-preloader-title">RÉSIDENCE ISNI</h1>
+        <p class="isni-preloader-caption">Préparez-vous à prendre le large</p>
+        <div class="isni-preloader-board" aria-hidden="true"></div>
+        <div class="isni-preloader-progress" aria-hidden="true"><span></span></div>
+        <span class="screen-reader-text">Chargement en cours…</span>
+    </div>
+    <svg class="isni-preloader-waves" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+        <path class="isni-wave-back" fill="rgba(31,111,120,.78)" d="M0,160 C180,220 260,90 450,145 C640,205 750,275 960,180 C1150,95 1270,125 1440,170 L1440,320 L0,320 Z" />
+        <path class="isni-wave-front" fill="#f2e8df" d="M0,210 C170,140 310,235 490,195 C700,145 820,120 1010,205 C1180,280 1290,225 1440,185 L1440,320 L0,320 Z" />
+    </svg>
+</div>
+<script>(function(){var el=document.getElementById('isni-preloader');if(!el)return;var done=false;function hide(){if(done)return;done=true;var wait=Math.max(0,1500-(performance.now()-started));window.setTimeout(function(){el.classList.add('is-leaving');window.setTimeout(function(){if(el.parentNode)el.remove();},380);},wait);}var started=performance.now();if(document.readyState==='complete')hide();else window.addEventListener('load',hide,{once:true});window.setTimeout(hide,2200);}());</script>
 
 <?php wp_footer(); ?>
 </body>
@@ -542,7 +601,7 @@ get_header(); ?>
     <!-- HERO SECTION -->
     <section class="isni-hero" style="position:relative;background:#f2e8df;padding:48px 24px 80px;overflow:hidden;">
         <div style="position:absolute;top:10px;left:50%;transform:translateX(-50%);white-space:nowrap;z-index:0;" class="ghost-title">
-            DESERT SURF CAMP
+            RÉSIDENCE ISNI
         </div>
 
         <div style="max-width:1440px;margin:0 auto;position:relative;z-index:2;display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:48px;align-items:center;">
@@ -555,16 +614,16 @@ get_header(); ?>
                     <span style="font-family:'Permanent Marker',cursive;color:#f05a2d;">& HOSPITALITÉ MAROCAINE</span>
                 </h1>
                 <p style="font-size:1.15rem;color:#06306b;max-width:520px;margin-bottom:28px;">
-                    29 chambres et suites chaleureuses au cœur d'Agadir sur l'Avenue Allal Ben Abdellah. Petit-déjeuner gourmand, sessions de surf à Taghazout et excursions désert.
+                    Établissement d’hébergement moderne de 29 chambres, Résidence Isni propose des séjours confortables et fonctionnels aux voyageurs de loisirs comme d’affaires. Située avenue Allal Ben Abdellah, elle offre un équilibre entre confort, intimité et accessibilité, près des restaurants, commerces, cafés, musées et principales attractions d’Agadir.
                 </p>
                 <div style="display:flex;gap:16px;flex-wrap:wrap;">
                     <a href="#reservation" class="btn-primary">Réserver mon séjour</a>
-                    <a href="#chambres" style="display:inline-block;padding:14px 28px;border-radius:9999px;border:2px solid #06306b;color:#06306b;font-weight:700;text-transform:uppercase;text-decoration:none;">Voir les chambres</a>
+                    <a href="<?php echo esc_url(home_url('/#chambres')); ?>" style="display:inline-block;padding:14px 28px;border-radius:9999px;border:2px solid #06306b;color:#06306b;font-weight:700;text-transform:uppercase;text-decoration:none;">Voir les chambres</a>
                 </div>
             </div>
 
             <div style="border-radius:24px;overflow:hidden;box-shadow:0 20px 40px rgba(6,48,107,0.12);transform:rotate(1deg);border:4px solid #ffffff;">
-                <img src="<?php echo esc_url(content_url('/uploads/2026/07/backgroud-1.jpg')); ?>" alt="Résidence ISNI Surf Camp Rooftop" style="width:100%;height:auto;display:block;min-height:380px;object-fit:cover;" onerror="this.src='https://images.unsplash.com/photo-1502680390469-be75c86b636f?auto=format&fit=crop&w=1200&q=80'">
+                <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/isni/family-suite.jpg'); ?>" alt="Salon et salle à manger d’une suite de la Résidence ISNI" style="width:100%;height:auto;display:block;min-height:380px;object-fit:cover;">
             </div>
         </div>
     </section>
@@ -572,7 +631,7 @@ get_header(); ?>
     <!-- TICKER STRIP -->
     <div style="background:#06306b;color:#f2e8df;padding:16px 0;overflow:hidden;white-space:nowrap;font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:0.1em;">
         <div style="display:inline-block;animation:scrollText 25s linear infinite;">
-            29 CHAMBRES DE CHARME · SURF GUIDING TAGHAZOUT · PETIT-DÉJEUNER MAISON · EXCURSIONS PETIT SAHARA · VIBES 100% MAROCAINES · ROOFTOP CHILL & YOGA ·
+            29 CHAMBRES · TARIFS PAR NUIT · PETIT-DÉJEUNER EN OPTION · SORTIE SURF À TAGHAZOUT SUR DEMANDE ·
         </div>
     </div>
 
@@ -589,22 +648,22 @@ get_header(); ?>
             <div class="card-panel" style="padding:32px;background:#ffffff;">
                 <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:#f05a2d;">01</div>
                 <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:8px;">Emplacement Central</h3>
-                <p style="color:#4a5568;">Sur l'Avenue Allal Ben Abdellah, proche de toutes les commodités, à 5 min de la corniche et des départs surf.</p>
+                <p style="color:#4a5568;">Proche des restaurants, commerces, cafés, musées et principales attractions d’Agadir.</p>
             </div>
             <div class="card-panel" style="padding:32px;background:#ffffff;">
                 <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:#f29acb;">02</div>
-                <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:8px;">Ambiance Surf & Bohème</h3>
-                <p style="color:#4a5568;">Râtelier sécurisé pour planches, rooftop convivial pour échanger vos meilleures vagues du jour.</p>
+                <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:8px;">Wi-Fi et kitchenette</h3>
+                <p style="color:#4a5568;">Des équipements signalés dans les informations publiques de l’établissement.</p>
             </div>
             <div class="card-panel" style="padding:32px;background:#ffffff;">
                 <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:#1f6f78;">03</div>
                 <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:8px;">Petit-Déjeuner Beldi & Frais</h3>
-                <p style="color:#4a5568;">Formules Continental, Express ou Beldi avec msemen chaud et thé à la menthe pour bien démarrer.</p>
+                <p style="color:#4a5568;">Formules Continental (35 DH), Express (30 DH) ou Beldi (35 DH), par personne et par jour.</p>
             </div>
             <div class="card-panel" style="padding:32px;background:#ffffff;">
                 <div style="font-family:'Bebas Neue',sans-serif;font-size:2.5rem;color:#06306b;">04</div>
-                <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:8px;">Excursions Océan & Dunes</h3>
-                <p style="color:#4a5568;">Coaching surf à Taghazout, session 4x4 au Petit Sahara et rando à Paradise Valley organisées pour vous.</p>
+                <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:8px;">Sortie surf à Taghazout</h3>
+                <p style="color:#4a5568;">Transport vers les spots, planche et combinaison, moniteur et déjeuner annoncés sur l’affiche. Tarif à confirmer.</p>
             </div>
         </div>
     </section>
@@ -622,22 +681,22 @@ get_header(); ?>
             <?php
             $rooms = isni_get_rooms();
             $room_images = array(
-                'standard' => content_url('/uploads/2026/06/chambre-standard.jpg'),
-                'confort'  => content_url('/uploads/2026/06/chambre-confort.jpg'),
-                'suite'    => content_url('/uploads/2026/06/suite.jpg')
+                'simple'    => get_template_directory_uri() . '/assets/images/isni/twin-bedroom.jpg',
+                'double'    => get_template_directory_uri() . '/assets/images/isni/living-room.jpg',
+                'triple'    => get_template_directory_uri() . '/assets/images/isni/family-suite.jpg',
+                'quadruple' => get_template_directory_uri() . '/assets/images/isni/family-suite.jpg'
             );
             $idx = 0;
             foreach ($rooms as $code => $r):
                 $reverse = ($idx % 2 === 1);
             ?>
             <div class="card-panel" style="margin-bottom:40px;display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));overflow:hidden;">
-                <div style="<?php echo $reverse ? 'order:2;' : ''; ?>min-height:340px;background:#e8d9cc;">
-                    <img src="<?php echo esc_url($room_images[$code] ?? ''); ?>" alt="<?php echo esc_attr($r['name']); ?>" style="width:100%;height:100%;object-fit:cover;display:block;" onerror="this.src='https://images.unsplash.com/photo-1590490360182-c33d57733427?auto=format&fit=crop&w=800&q=80'">
+                <div class="isni-image-drift" style="<?php echo $reverse ? 'order:2;' : ''; ?>min-height:340px;background:#e8d9cc;">
+                    <img src="<?php echo esc_url($room_images[$code] ?? ''); ?>" alt="<?php echo esc_attr($r['name']); ?>" style="width:100%;height:100%;object-fit:cover;display:block;">
                 </div>
                 <div style="padding:48px 36px;display:flex;flex-direction:column;justify-content:center;">
                     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                        <span style="font-size:0.85rem;font-weight:700;color:#f05a2d;text-transform:uppercase;"><?php echo esc_html($r['quantity']); ?> Chambres disponibles</span>
-                        <span style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#06306b;"><?php echo esc_html($r['price']); ?> MAD <span style="font-size:1rem;font-family:sans-serif;font-weight:normal;">/ nuit</span></span>
+                        <span style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#f05a2d;"><?php echo esc_html($r['price']); ?> MAD <span style="font-size:1rem;font-family:sans-serif;font-weight:normal;">/ nuit</span></span>
                     </div>
                     <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2.2rem;color:#06306b;margin-bottom:12px;"><?php echo esc_html($r['name']); ?></h3>
                     <p style="color:#4a5568;margin-bottom:24px;line-height:1.6;"><?php echo esc_html($r['description']); ?></p>
@@ -652,6 +711,53 @@ get_header(); ?>
             $idx++;
             endforeach;
             ?>
+            <h3 style="font-family:'Bebas Neue',sans-serif;font-size:2.8rem;color:#06306b;margin:72px 0 8px;text-align:center;">STUDIOS & APPARTEMENTS</h3>
+            <p style="max-width:780px;margin:0 auto 32px;text-align:center;color:#4a5568;line-height:1.65;">Les superficies et équipements ci-dessous reprennent les descriptifs transmis. Le tarif dépend du nombre de personnes, selon le barème affiché plus haut.</p>
+            <?php
+            $accommodation_details = array(
+                array('Studio Confort', '36 m²', 'kitchenette.jpg', 'Pensé pour allier confort et fonctionnalité, le studio offre une vue agréable sur le jardin Ibn Zaidoun. Il comprend un grand lit, deux canapés-lits et une kitchenette entièrement équipée. Salle de bain privée avec douche et WC, Wi-Fi gratuit.'),
+                array('Studio quadruple · vue jardin', '36 m²', 'twin-bedroom.jpg', 'Configuration adaptée aux familles ou aux amis, avec trois lits simples et deux canapés-lits. Kitchenette équipée, salle de bain privée avec douche et WC, Wi-Fi gratuit et balcon avec vue sur le jardin Ibn Zaidoun.'),
+                array('Chambre quadruple avec balcon', '36 m²', 'family-suite.jpg', 'Peut accueillir jusqu’à quatre personnes avec deux lits simples et deux canapés-lits. Kitchenette équipée, salle de bain privée avec douche et WC, balcon et Wi-Fi gratuit. La vue jardin dépend de la disponibilité.'),
+                array('Appartement deux chambres', '55 m²', 'twin-bedroom.jpg', 'Hébergement spacieux avec deux chambres séparées, un salon, trois lits simples, un lit double et deux canapés-lits. Kitchenette équipée, salle de bain privée avec douche et WC, Wi-Fi gratuit. Balcon avec vue jardin selon disponibilité.'),
+                array('Appartement une chambre', '36 m²', 'living-room.jpg', 'Espace fonctionnel avec deux lits simples et deux canapés-lits, kitchenette équipée, salle de bain privée avec douche et WC et Wi-Fi gratuit. Balcon avec vue sur le jardin Ibn Zaidoun selon disponibilité.')
+            );
+            ?>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:20px;margin:28px 0 60px;">
+                <?php foreach ($accommodation_details as $stay): ?>
+                <article class="card-panel" style="overflow:hidden;background:#fff;">
+                    <div class="isni-image-drift" style="aspect-ratio:16/10;"><img loading="lazy" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/isni/' . $stay[2]); ?>" alt="Espace de la Résidence ISNI · <?php echo esc_attr($stay[0]); ?>" style="width:100%;height:100%;object-fit:cover;display:block;"></div>
+                    <div style="padding:22px;"><span style="display:inline-block;border-radius:999px;background:#f2e8df;color:#06306b;padding:4px 11px;font-size:.8rem;font-weight:700;margin-bottom:8px;"><?php echo esc_html($stay[1]); ?></span><h4 style="font-family:'Bebas Neue',sans-serif;font-size:1.65rem;color:#06306b;margin-bottom:8px;"><?php echo esc_html($stay[0]); ?></h4><p style="font-size:.92rem;line-height:1.65;color:#4a5568;"><?php echo esc_html($stay[3]); ?></p></div>
+                </article>
+                <?php endforeach; ?>
+            </div>
+            <div style="margin:72px 0 24px;display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+                <?php foreach (array('Salon'=>'living-room.jpg','Chambre'=>'twin-bedroom.jpg','Équipements'=>'kitchenette.jpg','Suite'=>'family-suite.jpg','Restauration'=>'dining-room.jpg','Vue'=>'balcony.jpg') as $label=>$image): ?>
+                <figure class="card-panel isni-image-drift" style="position:relative;min-height:210px;">
+                    <img loading="lazy" src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/isni/' . $image); ?>" alt="<?php echo esc_attr($label); ?> de la Résidence ISNI" style="width:100%;height:100%;min-height:210px;object-fit:cover;display:block;">
+                    <figcaption style="position:absolute;bottom:0;left:0;right:0;padding:30px 16px 12px;color:white;font-weight:700;background:linear-gradient(transparent,rgba(6,48,107,.75));"><?php echo esc_html($label); ?></figcaption>
+                </figure>
+                <?php endforeach; ?>
+            </div>
+        </div>
+    </section>
+
+    <!-- AFFICHE SURF -->
+    <section id="activites" style="padding:72px 24px;background:#06306b;color:#f2e8df;">
+        <div style="max-width:1120px;margin:0 auto;display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:32px;align-items:center;">
+            <div class="isni-image-drift" style="border-radius:24px;max-height:560px;min-height:360px;">
+              <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/surf_lesson_taghazout_1793212942727.jpg'); ?>" alt="Surfeurs en session sur la côte marocaine" style="width:100%;height:100%;max-height:560px;min-height:360px;object-fit:cover;border-radius:24px;">
+            </div>
+            <div style="padding:12px 0;">
+                <span style="font-family:'Permanent Marker',cursive;color:#f29acb;">RÉSIDENCE ISNI · AGADIR</span>
+                <h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(3rem,6vw,5rem);line-height:.9;color:#fff;margin:12px 0 20px;">PREMIERS PAS SURF À TAGHAZOUT</h2>
+                <p style="font-size:1.05rem;line-height:1.7;color:#f2e8df;">Excursion à Taghazout avec session de surf. L’affiche de la résidence indique le transport vers les spots, la planche et la combinaison, un moniteur et le déjeuner inclus.</p>
+                <p style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#f29acb;">TARIF À CONFIRMER AVEC LA RÉCEPTION</p>
+                <p style="font-family:'Bebas Neue',sans-serif;font-size:1.6rem;color:#f29acb;">CHOISISSEZ VOTRE NIVEAU</p>
+                <div style="display:flex;flex-wrap:wrap;gap:12px;">
+                    <a class="btn-primary" href="<?php echo esc_url(home_url('/surf-debutant/')); ?>">Débutant · Découvrir le parcours</a>
+                    <a class="btn-primary" href="<?php echo esc_url(home_url('/surf-intermediaire/')); ?>">Intermédiaire · Voir le parcours</a>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -667,6 +773,7 @@ get_header(); ?>
             </p>
         </div>
 
+        <img src="<?php echo esc_url(get_template_directory_uri() . '/assets/breakfast-menu.png'); ?>" alt="Carte des formules petit-déjeuner" style="display:block;width:min(100%,760px);height:auto;margin:0 auto 32px;border-radius:16px;">
         <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:32px;">
             <?php
             $bf_list = isni_get_breakfast();
@@ -697,20 +804,20 @@ get_header(); ?>
         </div>
     </section>
 
-    <!-- SECTION CALENDRIER & RÉSERVATION -->
+    <!-- FORMULAIRE DE DEMANDE DE RÉSERVATION -->
     <section id="reservation" style="padding:80px 24px;background:#f2e8df;">
         <div style="max-width:1100px;margin:0 auto;background:#ffffff;border-radius:24px;padding:48px 36px;box-shadow:0 15px 40px rgba(6,48,107,0.1);">
             <div style="text-align:center;margin-bottom:36px;">
                 <span style="font-family:'Permanent Marker',cursive;color:#f05a2d;font-size:1.3rem;">Réservation Directe</span>
                 <h2 style="font-family:'Bebas Neue',sans-serif;font-size:3rem;color:#06306b;margin-bottom:8px;">
-                    CALENDRIER & DISPONIBILITÉS
+                    COMPOSER VOTRE SÉJOUR
                 </h2>
-                <p style="color:#4a5568;">Sélectionnez vos dates, votre chambre et votre petit-déjeuner. Synchronisation directe avec Google Sheet.</p>
+                <p style="color:#4a5568;">Choisissez vos dates, votre hébergement et vos options. Votre demande est enregistrée et transmise à la réception.</p>
             </div>
 
             <!-- Booking App Container handled by assets/booking.js -->
             <div id="isni-booking-app">
-                <!-- JS will mount calendar and interactive booking form here -->
+                <!-- JS mounts the date inputs and interactive booking form here -->
             </div>
         </div>
     </section>
@@ -738,6 +845,54 @@ get_header(); ?>
 <?php get_footer(); ?>
 `;
 
+  const makeSurfLevelPage = (level: 'debutant' | 'intermediaire') => {
+    const beginner = level === 'debutant';
+    const title = beginner ? 'Surf débutant à Taghazout' : 'Surf intermédiaire à Taghazout';
+    const headline = beginner ? 'DÉCOUVRIR LE SURF' : 'FAIRE ÉVOLUER SON SURF';
+    const intro = beginner
+      ? 'Vous n’avez jamais surfé ou souhaitez reprendre les bases ? Une sortie encadrée à Taghazout pour découvrir le surf à votre rythme.'
+      : 'Vous avez déjà une expérience et souhaitez gagner en aisance ? Choisissez le parcours intermédiaire et partagez vos objectifs avec la réception.';
+    const steps = beginner
+      ? [['01','Prendre ses repères','Découvrir la planche, les consignes de sécurité et le briefing avant la session.'],['02','Apprendre les bases','Travailler la position sur la planche, la rame et le redressement avec le moniteur.'],['03','Se lancer dans les vagues','Découvrir les premières vagues adaptées au niveau et aux conditions du jour.']]
+      : [['01','Évaluer son expérience','Décrire les vagues déjà surfées et les points que vous souhaitez améliorer.'],['02','Choisir un objectif','Travailler selon la session le placement, le timing, la rame ou la direction de la vague.'],['03','Progresser en confiance','Faire le point avec le moniteur sur les conditions et les objectifs de la session.']];
+    const focus = beginner
+      ? ['Sécurité et repères dans l’eau','Équilibre et position sur la planche','Rame et redressement','Découverte des premières vagues']
+      : ['Placement et lecture des vagues','Timing et rame','Prise de vague et direction','Objectifs adaptés au niveau confirmé sur place'];
+    return `<?php
+/** Auto-selected template for the ${title} page. */
+get_header(); ?>
+<main style="background:#faf5f0;color:#06306b;">
+<section style="position:relative;overflow:hidden;background:#06306b;color:white;min-height:530px;display:flex;align-items:center;">
+<img src="<?php echo esc_url(get_template_directory_uri() . '/assets/images/surf_lesson_taghazout_1793212942727.jpg'); ?>" alt="Session de surf à Taghazout" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.38;">
+<div style="position:absolute;inset:0;background:linear-gradient(90deg,rgba(6,48,107,.96),rgba(6,48,107,.64),rgba(6,48,107,.15));"></div>
+<div style="position:relative;z-index:1;max-width:1200px;width:100%;margin:0 auto;padding:72px 24px;">
+<a href="<?php echo esc_url(home_url('/#activites')); ?>" style="color:#fff;text-decoration:none;font-weight:700;">← Retour aux activités</a>
+<p style="font-family:'Permanent Marker',cursive;color:#f29acb;margin:42px 0 12px;text-transform:uppercase;letter-spacing:.14em;">Surf · Taghazout · ${beginner ? 'Débutant' : 'Intermédiaire'}</p>
+<h1 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(4rem,9vw,8rem);line-height:.88;margin:0;max-width:850px;">${headline}</h1>
+<p style="max-width:670px;font-size:1.2rem;line-height:1.7;color:rgba(255,255,255,.88);">${intro}</p>
+<div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:28px;"><span style="border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:9px 15px;">Transport vers les spots</span><span style="border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:9px 15px;">Planche & combinaison</span><span style="border:1px solid rgba(255,255,255,.4);border-radius:999px;padding:9px 15px;">Moniteur & déjeuner</span></div>
+</div></section>
+<section style="max-width:1200px;margin:0 auto;padding:72px 24px;">
+<p style="font-family:'Permanent Marker',cursive;color:#f05a2d;">VOTRE PARCOURS</p><h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,5vw,4.5rem);margin:0 0 28px;">${beginner ? 'APPRENDRE À SON RYTHME' : 'GAGNER EN AISANCE SUR LES VAGUES'}</h2>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px;">
+${steps.map(([number, label, description]) => `<article class="card-panel" style="padding:24px;transition:transform .25s,box-shadow .25s;"><span style="font-family:'Bebas Neue',sans-serif;color:#f05a2d;font-size:2.7rem;">${number}</span><h3 style="font-size:1.2rem;margin:8px 0;">${label}</h3><p style="color:#4a5568;line-height:1.65;">${description}</p></article>`).join('')}
+</div>
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:28px;margin-top:34px;">
+<div style="background:#f2e8df;border-radius:24px;padding:30px;"><h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;">POINTS À ABORDER</h3><ul style="line-height:2;">${focus.map(item => `<li>${item}</li>`).join('')}</ul></div>
+<div style="background:#fff;border-radius:24px;padding:30px;box-shadow:0 10px 30px rgba(6,48,107,.08);"><h3 style="font-family:'Bebas Neue',sans-serif;font-size:2rem;">SORTIE SUR DEMANDE</h3><p style="line-height:1.7;color:#4a5568;">L’affiche ISNI annonce le transport vers les spots, la planche, la combinaison, un moniteur et le déjeuner. Le tarif, les horaires, le déroulement et la disponibilité sont à confirmer par la résidence.</p><a class="btn-primary" href="<?php echo esc_url(home_url('/?isni_activity=surf-${level}#reservation')); ?>">Ajouter à ma demande · Tarif à confirmer</a><p style="font-size:.82rem;color:#718096;margin-top:12px;">Le montant surf n’est pas inclus dans l’estimation en ligne.</p></div>
+</div></section>
+<section style="background:#fff;padding:72px 24px;"><div style="max-width:1200px;margin:0 auto;"><p style="font-family:'Permanent Marker',cursive;color:#f05a2d;">QUESTIONS FRÉQUENTES</p><h2 style="font-family:'Bebas Neue',sans-serif;font-size:clamp(2.8rem,5vw,4.5rem);">AVANT DE PARTIR SURFER</h2><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;">
+<div class="card-panel" style="padding:24px;"><h3>Le matériel est-il inclus ?</h3><p style="color:#4a5568;line-height:1.6;">L’affiche indique planche et combinaison incluses. Les détails sont à confirmer avec la réception.</p></div>
+<div class="card-panel" style="padding:24px;"><h3>Quel est le tarif ?</h3><p style="color:#4a5568;line-height:1.6;">Aucun tarif par niveau n’a été fourni. La réception confirmera le prix et la disponibilité.</p></div>
+<div class="card-panel" style="padding:24px;"><h3>Le parcours est-il fixe ?</h3><p style="color:#4a5568;line-height:1.6;">Les points présentés sont des objectifs possibles, pas un programme garanti. Le contenu est à confirmer avec la résidence et le moniteur.</p></div>
+</div><p style="margin-top:28px;"><a href="<?php echo esc_url(home_url('/surf-${beginner ? 'intermediaire' : 'debutant'}/')); ?>" style="color:#1f6f78;font-weight:700;">Découvrir le niveau ${beginner ? 'intermédiaire' : 'débutant'} →</a></p></div></section>
+</main>
+<?php get_footer(); ?>`;
+  };
+
+  const surfBeginnerPhp = makeSurfLevelPage('debutant');
+  const surfIntermediatePhp = makeSurfLevelPage('intermediaire');
+
   const bookingJs = `/**
  * Residence ISNI - Interactive Booking Calendar & Google Sheets Bridge
  * Vanilla JavaScript (Zero external dependencies)
@@ -751,9 +906,10 @@ document.addEventListener('DOMContentLoaded', function() {
         ajaxUrl: '/wp-admin/admin-ajax.php',
         nonce: '',
         rooms: {
-            standard: { name: 'Chambre Standard', price: 450, quantity: 15 },
-            confort: { name: 'Chambre Confort', price: 600, quantity: 10 },
-            suite: { name: 'Suite Appart-Hôtel', price: 900, quantity: 4 }
+            simple: { name: 'Chambre simple · 1 personne', price: 320, capacity: 1 },
+            double: { name: 'Chambre double · 2 personnes', price: 420, capacity: 2 },
+            triple: { name: 'Chambre triple · 3 personnes', price: 480, capacity: 3 },
+            quadruple: { name: 'Chambre quadruple · 4 personnes', price: 520, capacity: 4 }
         },
         breakfast: {
             none: { name: 'Sans petit-déjeuner', price: 0 },
@@ -763,28 +919,104 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     };
 
-    let selectedRoom = 'standard';
+    let selectedRoom = 'double';
     let checkInDate = '';
     let checkOutDate = '';
-    let guests = 1;
-    let selectedBreakfast = 'beldi';
+    let guests = 2;
+    let selectedBreakfast = 'none';
+    const activityLabels = {
+        'surf-debutant': 'Surf · Débutant · Taghazout',
+        'surf-intermediaire': 'Surf · Intermédiaire · Taghazout'
+    };
+    let selectedActivities = [];
+    const requestedActivity = new URLSearchParams(window.location.search).get('isni_activity');
+    if (activityLabels[requestedActivity]) selectedActivities = [requestedActivity];
+    let guestName = '';
+    let guestEmail = '';
+    let guestPhone = '';
+    let guestNotes = '';
+
+    function localISODate(date) {
+        return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'), String(date.getDate()).padStart(2, '0')].join('-');
+    }
+
+    function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, char => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[char]));
+    }
+
+    function updateActivityUI() {
+        Object.keys(activityLabels).forEach(function(code) {
+            const checkbox = document.getElementById('isni-activity-' + code);
+            if (checkbox) checkbox.checked = selectedActivities.includes(code);
+        });
+        const summary = document.getElementById('isni-activity-summary');
+        if (summary) summary.textContent = selectedActivities.length
+            ? selectedActivities.map(code => activityLabels[code] + ' · Tarif à confirmer').join(' ; ')
+            : 'Aucune activité sélectionnée';
+        updateWhatsAppLink();
+    }
+
+    function updateWhatsAppLink() {
+        const link = document.getElementById('isni-whatsapp-link');
+        if (!link) return;
+        const dates = checkInDate && checkOutDate ? checkInDate + ' au ' + checkOutDate + ' (' + nightsBetween() + ' nuits)' : 'à préciser';
+        const room = data.rooms[selectedRoom] || {};
+        const breakfast = data.breakfast[selectedBreakfast] || { name: 'Sans petit-déjeuner', price: 0 };
+        const nights = nightsBetween();
+        const roomTotal = nights * (Number(room.price) || 0);
+        const breakfastTotal = nights * (Number(breakfast.price) || 0) * guests;
+        const total = roomTotal + breakfastTotal;
+        const activityText = selectedActivities.length ? selectedActivities.map(code => activityLabels[code]).join(', ') + ' (tarif à confirmer)' : 'Aucune';
+        const message = [
+            'Bonjour Résidence ISNI Agadir ! Je souhaite envoyer cette demande de réservation :',
+            'Hébergement : ' + (room.name || selectedRoom),
+            'Dates : ' + dates,
+            'Voyageurs : ' + guests,
+            'Petit-déjeuner : ' + breakfast.name + ' (' + (Number(breakfast.price) || 0) + ' DH/personne/jour)',
+            'Prix chambre : ' + roomTotal + ' MAD',
+            'Prix petits-déjeuners : ' + breakfastTotal + ' MAD',
+            'Activités : ' + activityText,
+            'Total estimé hors activités : ' + total + ' MAD',
+            'Nom : ' + (guestName || 'à compléter'),
+            'Email : ' + (guestEmail || 'à compléter'),
+            'Téléphone / WhatsApp : ' + (guestPhone || 'à compléter'),
+            'Demandes particulières : ' + (guestNotes || 'aucune'),
+            'Merci de me confirmer la disponibilité.'
+        ].join('\\n');
+        const phone = String(data.whatsapp || '+212 528 820 467').replace(/[^0-9]/g, '');
+        link.href = 'https://wa.me/' + phone + '?text=' + encodeURIComponent(message);
+    }
+
+    function nightsBetween() {
+        if (!checkInDate || !checkOutDate) return 0;
+        const diff = Date.parse(checkOutDate + 'T00:00:00Z') - Date.parse(checkInDate + 'T00:00:00Z');
+        return diff > 0 ? Math.round(diff / 86400000) : 0;
+    }
 
     function calculateTotal() {
         if (!checkInDate || !checkOutDate) return 0;
-        const d1 = new Date(checkInDate);
-        const d2 = new Date(checkOutDate);
+        const d1 = Date.parse(checkInDate + 'T00:00:00Z');
+        const d2 = Date.parse(checkOutDate + 'T00:00:00Z');
         const diffTime = d2 - d1;
-        const nights = Math.max(1, Math.round(diffTime / (1000 * 60 * 60 * 24)));
-        const rPrice = (data.rooms[selectedRoom] ? data.rooms[selectedRoom].price : 450);
+        if (diffTime <= 0) return 0;
+        const nights = Math.round(diffTime / 86400000);
+        const rPrice = (data.rooms[selectedRoom] ? data.rooms[selectedRoom].price : 420);
         const bfPrice = (data.breakfast[selectedBreakfast] ? data.breakfast[selectedBreakfast].price : 0);
         return (nights * rPrice) + (nights * bfPrice * guests);
     }
 
     function render() {
+        const existingName = document.getElementById('isni-name');
+        if (existingName) guestName = existingName.value;
+        const existingEmail = document.getElementById('isni-email');
+        if (existingEmail) guestEmail = existingEmail.value;
+        const existingPhone = document.getElementById('isni-phone');
+        if (existingPhone) guestPhone = existingPhone.value;
+        const existingNotes = document.getElementById('isni-notes');
+        if (existingNotes) guestNotes = existingNotes.value;
         const total = calculateTotal();
-        const nights = (checkInDate && checkOutDate) 
-            ? Math.max(1, Math.round((new Date(checkOutDate) - new Date(checkInDate)) / (1000 * 60 * 60 * 24)))
-            : 0;
+        const dateDiff = (checkInDate && checkOutDate) ? Date.parse(checkOutDate + 'T00:00:00Z') - Date.parse(checkInDate + 'T00:00:00Z') : 0;
+        const nights = dateDiff > 0 ? Math.round(dateDiff / 86400000) : 0;
 
         container.innerHTML = \`
             <form id="isni-booking-form" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:24px;">
@@ -805,21 +1037,18 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
                         <div>
                             <label style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;">Arrivée</label>
-                            <input type="date" id="isni-checkin" value="\${checkInDate}" min="\${new Date().toISOString().split('T')[0]}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;" required>
+                            <input type="date" id="isni-checkin" value="\${checkInDate}" min="\${localISODate(new Date())}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;" required>
                         </div>
                         <div>
                             <label style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;">Départ</label>
-                            <input type="date" id="isni-checkout" value="\${checkOutDate}" min="\${checkInDate || new Date().toISOString().split('T')[0]}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;" required>
+                            <input type="date" id="isni-checkout" value="\${checkOutDate}" min="\${checkInDate || localISODate(new Date())}" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;" required>
                         </div>
                     </div>
 
                     <div style="margin-bottom:16px;">
                         <label style="display:block;font-weight:600;font-size:0.85rem;margin-bottom:6px;">Nombre de Personnes</label>
                         <select id="isni-guests-select" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:1rem;background:#fff;">
-                            <option value="1" \${guests === 1 ? 'selected' : ''}>1 Personne</option>
-                            <option value="2" \${guests === 2 ? 'selected' : ''}>2 Personnes</option>
-                            <option value="3" \${guests === 3 ? 'selected' : ''}>3 Personnes</option>
-                            <option value="4" \${guests === 4 ? 'selected' : ''}>4 Personnes</option>
+                            \${[1, 2, 3, 4].map(count => '<option value="' + count + '" ' + (guests === count ? 'selected' : '') + '>' + count + ' ' + (count === 1 ? 'Personne' : 'Personnes') + '</option>').join('')}
                         </select>
                     </div>
 
@@ -839,36 +1068,73 @@ document.addEventListener('DOMContentLoaded', function() {
                         <h4 style="font-family:'Bebas Neue',sans-serif;font-size:1.5rem;color:#06306b;margin-bottom:16px;">2. Vos Coordonnées</h4>
                         
                         <div style="margin-bottom:12px;">
-                            <input type="text" id="isni-name" placeholder="Nom et Prénom *" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;">
+                            <input type="text" id="isni-name" value="\${escapeHtml(guestName)}" placeholder="Nom et Prénom *" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;">
                         </div>
                         <div style="margin-bottom:12px;">
-                            <input type="email" id="isni-email" placeholder="Adresse Email *" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;">
+                            <input type="email" id="isni-email" value="\${escapeHtml(guestEmail)}" placeholder="Adresse Email *" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;">
                         </div>
                         <div style="margin-bottom:12px;">
-                            <input type="tel" id="isni-phone" placeholder="Téléphone / WhatsApp *" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;">
+                            <input type="tel" id="isni-phone" value="\${escapeHtml(guestPhone)}" placeholder="Téléphone / WhatsApp *" required style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;">
                         </div>
                         <div style="margin-bottom:12px;">
-                            <textarea id="isni-notes" rows="2" placeholder="Demandes particulières (cours de surf, heure d'arrivée...)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;"></textarea>
+                            <textarea id="isni-notes" rows="2" placeholder="Demandes particulières (cours de surf, heure d'arrivée...)" style="width:100%;padding:10px;border-radius:8px;border:1px solid #ccc;font-size:0.95rem;background:#fff;">\${escapeHtml(guestNotes)}</textarea>
+                        </div>
+                        <div style="margin:12px 0;padding:12px;background:#fff;border:1px solid #d8deea;border-radius:10px;">
+                            <strong style="display:block;margin-bottom:8px;color:#06306b;">Activités surf sélectionnées</strong>
+                            <label style="display:flex;gap:8px;align-items:flex-start;color:#06306b;font-size:.9rem;margin:8px 0;">
+                                <input type="checkbox" id="isni-activity-surf-debutant" \${selectedActivities.includes('surf-debutant') ? 'checked' : ''}>
+                                <span>Surf · Débutant · Taghazout — tarif à confirmer</span>
+                            </label>
+                            <label style="display:flex;gap:8px;align-items:flex-start;color:#06306b;font-size:.9rem;margin:8px 0;">
+                                <input type="checkbox" id="isni-activity-surf-intermediaire" \${selectedActivities.includes('surf-intermediaire') ? 'checked' : ''}>
+                                <span>Surf · Intermédiaire · Taghazout — tarif à confirmer</span>
+                            </label>
                         </div>
                     </div>
 
                     <div style="border-top:2px dashed #06306b;padding-top:16px;margin-top:16px;">
+                        <div style="margin-bottom:10px;color:#06306b;font-size:.85rem;"><strong>Activités choisies :</strong> <span id="isni-activity-summary"></span></div>
                         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-                            <span style="font-weight:600;color:#06306b;">Total estimé (\${nights} nuits) :</span>
+                            <span style="font-weight:600;color:#06306b;">Total estimé (\${nights} nuits, hors activités à confirmer) :</span>
                             <span style="font-family:'Bebas Neue',sans-serif;font-size:2rem;color:#f05a2d;">\${total} MAD</span>
                         </div>
                         <button type="submit" id="isni-submit-btn" style="width:100%;background:#f05a2d;color:#fff;border:none;padding:14px;border-radius:9999px;font-weight:700;font-size:1rem;text-transform:uppercase;cursor:pointer;">
                             Envoyer ma demande de réservation
                         </button>
+                        <a id="isni-whatsapp-link" href="#" target="_blank" rel="noopener noreferrer" style="display:block;margin-top:14px;text-align:center;color:#128c4a;font-size:.9rem;font-weight:700;">Ou envoyer le récapitulatif complet par WhatsApp</a>
                     </div>
                 </div>
             </form>
             <div id="isni-feedback" style="margin-top:20px;display:none;padding:16px;border-radius:8px;"></div>
         \`;
 
+        // Restore guest details after the form redraws and keep the selected activity visible.
+        document.getElementById('isni-name').value = guestName;
+        document.getElementById('isni-email').value = guestEmail;
+        document.getElementById('isni-phone').value = guestPhone;
+        updateActivityUI();
+        ['isni-name', 'isni-email', 'isni-phone', 'isni-notes'].forEach(function(id) {
+            document.getElementById(id).addEventListener('input', function(e) {
+                if (id === 'isni-name') guestName = e.target.value;
+                if (id === 'isni-email') guestEmail = e.target.value;
+                if (id === 'isni-phone') guestPhone = e.target.value;
+                if (id === 'isni-notes') guestNotes = e.target.value;
+                updateWhatsAppLink();
+            });
+        });
+        ['surf-debutant', 'surf-intermediaire'].forEach(function(code) {
+            document.getElementById('isni-activity-' + code).addEventListener('change', function(e) {
+                selectedActivities = e.target.checked
+                    ? Array.from(new Set([...selectedActivities, code]))
+                    : selectedActivities.filter(activity => activity !== code);
+                updateActivityUI();
+            });
+        });
+
         // Wire event handlers
         document.getElementById('isni-room-select').addEventListener('change', function(e) {
             selectedRoom = e.target.value;
+            guests = data.rooms[selectedRoom].capacity;
             render();
         });
         document.getElementById('isni-checkin').addEventListener('change', function(e) {
@@ -881,6 +1147,8 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         document.getElementById('isni-guests-select').addEventListener('change', function(e) {
             guests = parseInt(e.target.value);
+            const matchingRoom = Object.keys(data.rooms).find(code => data.rooms[code].capacity === guests);
+            if (matchingRoom) selectedRoom = matchingRoom;
             render();
         });
         document.getElementById('isni-bf-select').addEventListener('change', function(e) {
@@ -908,6 +1176,7 @@ document.addEventListener('DOMContentLoaded', function() {
             formData.append('guests', guests);
             formData.append('breakfast', selectedBreakfast);
             formData.append('notes', document.getElementById('isni-notes').value);
+            formData.append('activities', selectedActivities.map(code => activityLabels[code]).join(', '));
             formData.append('website', document.querySelector('input[name="website"]').value);
 
             fetch(data.ajaxUrl, {
@@ -920,8 +1189,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (response.success) {
                     feedback.style.background = '#d4edda';
                     feedback.style.color = '#155724';
-                    feedback.innerHTML = '<strong>Succès !</strong> ' + response.data.message;
-                    document.getElementById('isni-booking-form').reset();
+                    feedback.innerHTML = '<strong>Demande enregistrée.</strong> ' + response.data.message + (response.data.sheetSyncWarning ? '<br><strong>Google Sheets :</strong> synchronisation non confirmée. Contactez la résidence pour vérifier votre demande.' : '');
                 } else {
                     feedback.style.background = '#f8d7da';
                     feedback.style.color = '#721c24';
@@ -941,17 +1209,10 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Set default dates (tomorrow to +3 days)
-    const tomorrow = new Date();
-    tomorrow.setDate(tomorrow.getDate() + 1);
-    const in3Days = new Date();
-    in3Days.setDate(in3Days.getDate() + 4);
-    checkInDate = tomorrow.toISOString().split('T')[0];
-    checkOutDate = in3Days.toISOString().split('T')[0];
-
     // Expose helpers for outside buttons
     window.isniSelectRoom = function(code) {
         selectedRoom = code;
+        guests = data.rooms[code] ? data.rooms[code].capacity : guests;
         render();
         const el = document.getElementById('reservation');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
@@ -960,6 +1221,16 @@ document.addEventListener('DOMContentLoaded', function() {
     window.isniSelectBreakfast = function(code) {
         selectedBreakfast = code;
         render();
+        const el = document.getElementById('reservation');
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    window.isniSelectActivity = function(code) {
+        if (!activityLabels[code]) return;
+        selectedActivities = selectedActivities.includes(code)
+            ? selectedActivities.filter(activity => activity !== code)
+            : [...selectedActivities, code];
+        updateActivityUI();
         const el = document.getElementById('reservation');
         if (el) el.scrollIntoView({ behavior: 'smooth' });
     };
@@ -986,18 +1257,21 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function doPost(e) {
   var lock = LockService.getScriptLock();
-  lock.tryLock(10000);
+  if (!lock.tryLock(10000)) throw new Error("Impossible de verrouiller la feuille. Réessayez.");
 
   try {
     var rawData = e.postData ? e.postData.contents : "{}";
     var data = JSON.parse(rawData);
+    if (data.websiteHoneypot) {
+      return ContentService.createTextOutput(JSON.stringify({ status: "ignored" }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    if (!data.fullName || !data.email || !data.phone || !data.checkIn || !data.checkOut) {
+      throw new Error("Champs obligatoires manquants.");
+    }
 
     // Ouvrir le classeur actif ou créer l'onglet "Réservations"
-    var ss = SpreadsheetApp.getActiveSpreadsheet();
-    if (!ss) {
-      // Si exécuté hors d'une feuille existante, créer une feuille dédiée
-      ss = SpreadsheetApp.create("Résidence ISNI - Réservations");
-    }
+    var ss = getIsniSpreadsheet_();
 
     var sheetName = "Réservations";
     var sheet = ss.getSheetByName(sheetName);
@@ -1019,42 +1293,60 @@ function doPost(e) {
         "Formule Petit-Déj",
         "Total (MAD)",
         "Statut",
-        "Notes / Demandes"
+        "Notes / Demandes",
+        "Activités souhaitées"
       ]);
 
       // Mise en forme des en-têtes
-      var headerRange = sheet.getRange("A1:N1");
+      var headerRange = sheet.getRange("A1:Q1");
       headerRange.setBackground("#06306b");
       headerRange.setFontColor("#ffffff");
       headerRange.setFontWeight("bold");
       sheet.setFrozenRows(1);
     }
 
+    [[15, "Activités souhaitées"], [16, "Prix chambre (MAD)"], [17, "Petit-déjeuner total (MAD)"]].forEach(function(header) {
+      if (sheet.getRange(1, header[0]).getValue() !== header[1]) {
+        sheet.getRange(1, header[0]).setValue(header[1]).setBackground("#06306b").setFontColor("#ffffff").setFontWeight("bold");
+      }
+    });
+
+    // Évite les doublons lors d'une nouvelle tentative après un délai réseau.
+    var bookingId = data.id || "ISNI-" + new Date().getTime();
+    if (sheet.getLastRow() > 1 && sheet.getRange(2, 2, sheet.getLastRow() - 1, 1)
+      .createTextFinder(String(bookingId)).matchEntireCell(true).findNext()) {
+      return ContentService.createTextOutput(JSON.stringify({ status: "success", id: bookingId, duplicate: true }))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+
     // Ajouter la ligne de réservation
     sheet.appendRow([
-      data.timestamp || new Date(),
-      data.id || "ISNI-" + new Date().getTime(),
-      data.fullName || "",
-      data.email || "",
-      data.phone || "",
-      data.roomType || "",
-      data.checkIn || "",
-      data.checkOut || "",
+      safeCell_(data.timestamp || new Date()),
+      safeCell_(bookingId),
+      safeCell_(data.fullName),
+      safeCell_(data.email),
+      safeCell_(data.phone),
+      safeCell_(data.roomType || ""),
+      safeCell_(data.checkIn),
+      safeCell_(data.checkOut),
       data.nights || "",
       data.guests || 1,
-      data.breakfast || "none",
+      safeCell_(data.breakfast || "none"),
       data.totalPriceMAD || 0,
-      data.status || "en_attente",
-      data.notes || ""
+      safeCell_(data.status || "en_attente"),
+      safeCell_(data.notes || ""),
+      safeCell_(data.activities || ""),
+      Number(data.roomPriceMAD) || 0,
+      Number(data.breakfastPriceMAD) || 0
     ]);
 
     // Formatage auto de largeur
-    sheet.autoResizeColumns(1, 14);
+    sheet.autoResizeColumns(1, 17);
 
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       message: "Réservation enregistrée dans Google Sheets avec succès",
-      id: data.id
+      id: bookingId
     })).setMimeType(ContentService.MimeType.JSON);
 
   } catch (error) {
@@ -1065,6 +1357,28 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// À lancer une fois dans l'éditeur Apps Script avant le déploiement.
+function initializeIsniSheet() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (!ss) ss = SpreadsheetApp.create("Résidence ISNI - Réservations");
+  PropertiesService.getScriptProperties().setProperty("ISNI_SPREADSHEET_ID", ss.getId());
+  Logger.log("Classeur ISNI prêt : " + ss.getUrl());
+  return ss.getUrl();
+}
+
+function getIsniSpreadsheet_() {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  if (ss) return ss;
+  var id = PropertiesService.getScriptProperties().getProperty("ISNI_SPREADSHEET_ID");
+  if (!id) throw new Error("Lancez initializeIsniSheet() une fois avant le déploiement.");
+  return SpreadsheetApp.openById(id);
+}
+
+function safeCell_(value) {
+  var text = String(value == null ? "" : value);
+  return /^[=+@\\-\\t\\r]/.test(text) ? "'" + text : text;
 }
 
 function doGet(e) {
@@ -1084,7 +1398,8 @@ Avenue Allal Ben Abdellah, Agadir, Maroc.
 - \`style.css\` : Déclaration du thème et styles inspirés de fr.desertsurfcamp.com (fond crème #f2e8df, orange #f05a2d, bleu marine #06306b).
 - \`functions.php\` : Configuration WordPress 7.1.3 + PHP 8.1, menu Réglages > Résidence, CPT \`isni_booking\`, requêtes AJAX sécurisées (nonce + honeypot anti-spam), calcul de prix côté serveur.
 - \`header.php\` & \`footer.php\` : En-tête et pied de page avec polices Archivo, Bebas Neue, Permanent Marker.
-- \`front-page.php\` : Page d'accueil complète (Hero, bandeau animé, pourquoi, panneaux chambres 50/50, activités surf & désert, menu petit-déjeuner avec les 3 formules, calendrier).
+- \`front-page.php\` : Page d'accueil avec chambres, petit-déjeuner, activité surf et réservation.
+- \`page-surf-debutant.php\` et \`page-surf-intermediaire.php\` : pages dédiées créées automatiquement à l’activation.
 - \`index.php\` : Template de secours.
 - \`assets/booking.js\` : Calendrier et formulaire de réservation interactif sans dépendance externe.
 - \`google-apps-script.gs\` : Script Google Apps Script pour synchroniser automatiquement chaque réservation dans votre Google Sheet en temps réel.
@@ -1093,15 +1408,17 @@ Avenue Allal Ben Abdellah, Agadir, Maroc.
 1. Dans votre panneau d'administration WordPress, allez dans **Apparence > Thèmes > Ajouter un thème > Téléverser un thème**.
 2. Sélectionnez le fichier \`residence-isni-theme.zip\` et cliquez sur **Installer maintenant**.
 3. Cliquez sur **Activer**.
-4. Rendez-vous dans **Réglages > Résidence** pour configurer vos coordonnées, votre numéro WhatsApp et l'URL de votre Google Sheet.
-5. Créez une page nommée "Accueil" et dans **Réglages > Lecture**, choisissez "Une page statique" et sélectionnez "Accueil".
+4. Les pages **Surf Débutant** et **Surf Intermédiaire** sont créées à l’activation du thème.
+5. Dans **Réglages > Résidence**, vérifiez les coordonnées préremplies et ajoutez l’URL de votre Google Sheet.
+6. Créez une page nommée "Accueil" et dans **Réglages > Lecture**, choisissez "Une page statique" et sélectionnez "Accueil".
 
 ## Déploiement de Google Sheets
 1. Rendez-vous sur https://script.google.com/
 2. Créez un nouveau projet et collez le contenu de \`google-apps-script.gs\`.
-3. Cliquez sur Déployer > Nouveau déploiement > Application Web.
-4. Définissez "Qui a accès" sur "Tout le monde" (Anyone).
-5. Copiez l'URL de la Web App et collez-la dans Réglages > Résidence dans votre admin WordPress.
+3. Sélectionnez \`initializeIsniSheet\`, cliquez sur **Exécuter** et autorisez l'accès à Google Sheets. Copiez l'URL indiquée dans le journal d'exécution. Cette étape mémorise le classeur unique utilisé par les réservations.
+4. Cliquez sur Déployer > Nouveau déploiement > Application Web, choisissez **Exécuter en tant que : Moi** et définissez l'accès sur **Tout le monde**.
+5. Copiez l'URL qui se termine par \`/exec\` et collez-la dans Réglages > Résidence dans votre admin WordPress.
+6. Le thème attend la réponse de Google Apps Script et affiche un avertissement si l’écriture n’est pas confirmée. Les demandes restent aussi enregistrées dans WordPress ; vérifiez une ligne réelle dans l’onglet Réservations après un essai.
 `;
 
   return [
@@ -1110,6 +1427,8 @@ Avenue Allal Ben Abdellah, Agadir, Maroc.
     { name: 'header.php', content: headerPhp, description: 'En-tête et navigation' },
     { name: 'footer.php', content: footerPhp, description: 'Pied de page et coordonnées' },
     { name: 'front-page.php', content: frontPagePhp, description: 'Page d’accueil avec toutes les sections' },
+    { name: 'page-surf-debutant.php', content: surfBeginnerPhp, description: 'Page surf niveau débutant' },
+    { name: 'page-surf-intermediaire.php', content: surfIntermediatePhp, description: 'Page surf niveau intermédiaire' },
     { name: 'index.php', content: indexPhp, description: 'Fichier index de secours' },
     { name: 'assets/booking.js', content: bookingJs, description: 'Script calendrier de réservation' },
     { name: 'google-apps-script.gs', content: googleAppsScript, description: 'Script Google Sheet Web App' },
@@ -1125,6 +1444,23 @@ export async function generateWordpressThemeZip(): Promise<Blob> {
   files.forEach(f => {
     folder?.file(f.name, f.content);
   });
+
+  const assetPaths = [
+    'assets/breakfast-menu.png',
+    'assets/images/surf_excursion_sahara_1793212942120.jpg',
+    'assets/images/surf_lesson_taghazout_1793212942727.jpg',
+    'assets/images/isni/living-room.jpg',
+    'assets/images/isni/kitchenette.jpg',
+    'assets/images/isni/twin-bedroom.jpg',
+    'assets/images/isni/family-suite.jpg',
+    'assets/images/isni/dining-room.jpg',
+    'assets/images/isni/balcony.jpg'
+  ];
+  await Promise.all(assetPaths.map(async (path) => {
+    const response = await fetch(`/${path}`);
+    if (!response.ok) throw new Error(`Impossible d’inclure le visuel ${path} dans le thème WordPress.`);
+    folder?.file(path, await response.blob());
+  }));
 
   return await zip.generateAsync({ type: 'blob' });
 }
