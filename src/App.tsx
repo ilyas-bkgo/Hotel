@@ -168,7 +168,7 @@ export default function App() {
         {/* Informations pratiques */}
         <GoodToKnow />
 
-        {/* Visual Booking Calendar & Google Sheets Sync */}
+        {/* Booking form */}
         <BookingCalendar
           initialRoomCode={selectedRoomCode}
           initialBreakfastCode={selectedBreakfastCode}

@@ -167,7 +167,7 @@ export const BookingCalendar: React.FC<BookingCalendarProps> = ({
         confetti({ particleCount: 80, spread: 70, origin: { y: 0.6 }, colors: ['#f05a2d', '#06306b', '#f29acb', '#1f6f78'] });
         setSubmissionSuccess(newRecord);
         if (result.data.sheetSyncWarning) {
-          setSubmissionError('La demande est enregistrée dans WordPress, mais la synchronisation Google Sheets reste à vérifier.');
+          setSubmissionError('Votre demande est bien enregistrée. Notre équipe vérifiera sa confirmation et vous contactera rapidement.');
         }
         return;
       }

@@ -9,7 +9,7 @@ export const MarqueeStrip: React.FC = () => {
     'EXCURSIONS PETIT SAHARA & DUNES 4X4',
     'VIBES 100% MAROCAINES',
     'AVENUE ALLAL BEN ABDELLAH · AGADIR',
-    'RÉSERVATION SYNCHRONISÉE GOOGLE SHEETS',
+    'VOTRE SÉJOUR À AGADIR, EN TOUTE SÉRÉNITÉ',
   ];
 
   return (
