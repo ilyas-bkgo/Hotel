@@ -50,7 +50,7 @@ export const Header: React.FC<HeaderProps> = ({
               RÉSIDENCE ISNI
             </span>
             <span className="font-marker text-xs text-[#f05a2d] tracking-wider leading-none mt-0.5">
-              AGADIR · SURF CAMP
+              RÉSIDENCE & SUITES · AGADIR
             </span>
           </div>
         </div>

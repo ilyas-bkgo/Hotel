@@ -147,7 +147,7 @@ export default function App() {
           onExploreRooms={() => scrollToSection('chambres')}
         />
 
-        {/* Surf Camp animated Marquee Banner */}
+        {/* Animated residence highlights banner */}
         <MarqueeStrip />
 
         {/* Why Choose Résidence ISNI Section */}
@@ -156,7 +156,7 @@ export default function App() {
         {/* 50/50 Split Room Showcase Panels */}
         <RoomsSection onSelectRoom={handleSelectRoomFromSection} />
 
-        {/* Activities & Excursions inspired by Desert Surf Camp */}
+        {/* Activities and excursions available to residence guests */}
         <ActivitiesSection onOpenSurfLevel={openSurfLevel} />
 
         {/* Breakfast Menu Section with real attached visual */}

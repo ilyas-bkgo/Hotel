@@ -12,7 +12,7 @@ export const Hero: React.FC<HeroProps> = ({ onReserve, onExploreRooms }) => {
   return (
     <section id="hero" className="relative bg-[#f2e8df] pt-6 pb-16 lg:pb-24 overflow-hidden border-b border-[#06306b]/10">
       
-      {/* Giant Ghost Watermark Typography (Desert Surf Camp trademark) */}
+      {/* Oversized residence wordmark */}
       <div 
         aria-hidden="true" 
         className="ghost-title absolute top-0 left-1/2 -translate-x-1/2 whitespace-nowrap opacity-40 pointer-events-none select-none z-0"
@@ -41,9 +41,9 @@ export const Hero: React.FC<HeroProps> = ({ onReserve, onExploreRooms }) => {
 
             {/* Main Title with Marker Accent */}
             <h1 className="font-bebas text-5xl sm:text-7xl lg:text-8xl text-[#06306b] tracking-tight leading-[0.9] mb-4">
-              L’ESPRIT SURF <br />
+              RÉSIDENCE & SUITES <br />
               <span className="font-marker text-4xl sm:text-6xl lg:text-7xl text-[#f05a2d] block -rotate-1 mt-1">
-                & DÉTENTE À AGADIR
+                AU CŒUR D’AGADIR
               </span>
             </h1>
 
@@ -95,7 +95,7 @@ export const Hero: React.FC<HeroProps> = ({ onReserve, onExploreRooms }) => {
             {/* Stamp sticker */}
             <div className="absolute -top-4 -right-2 sm:-top-6 sm:-right-4 z-20 stamp-badge bg-[#f05a2d] text-white font-bebas text-sm sm:text-base px-4 py-2.5 shadow-lg border-2 border-white flex flex-col items-center">
               <span>RÉSIDENCE ISNI</span>
-              <span className="font-marker text-[10px] text-[#f29acb] -mt-1">100% VIBES</span>
+              <span className="font-marker text-[10px] text-[#f29acb] -mt-1">SÉJOUR CONFORT</span>
             </div>
 
             {/* Secondary Badge */}
@@ -103,7 +103,7 @@ export const Hero: React.FC<HeroProps> = ({ onReserve, onExploreRooms }) => {
               🌊 Taghazout & Dunes à proximité
             </div>
 
-            {/* Photo Card with Desert Surf Camp border */}
+            {/* Suite photo card */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-[#06306b] group">
               <img
                 src={assetUrl("/assets/images/isni/family-suite.jpg")}

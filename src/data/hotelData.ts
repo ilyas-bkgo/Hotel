@@ -152,7 +152,7 @@ export const ACTIVITIES: ActivityItem[] = [
 
 export const HOTEL_INFO = {
   name: 'Résidence ISNI',
-  tagline: 'Apparts-Hôtel & Surf Camp Lifestyle',
+  tagline: 'Résidence & Suites au cœur d’Agadir',
   city: 'Agadir',
   country: 'Maroc',
   address: 'Avenue Allal Ben Abdellah, Agadir',

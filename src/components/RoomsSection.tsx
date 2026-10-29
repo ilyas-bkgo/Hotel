@@ -34,7 +34,7 @@ export const RoomsSection: React.FC<RoomsSectionProps> = ({ onSelectRoom }) => {
           </p>
         </div>
 
-        {/* 50/50 Split Room Cards (Desert Surf Camp layout) */}
+        {/* Alternating room photo and details panels */}
         <div className="space-y-12">
           {ROOMS.map((room: RoomType, idx: number) => {
             const isReversed = idx % 2 === 1;

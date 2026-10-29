@@ -29,7 +29,7 @@ export const Footer: React.FC<FooterProps> = ({
                   RÉSIDENCE ISNI
                 </span>
                 <span className="font-marker text-xs text-[#f29acb] tracking-wider leading-none">
-                  APPART-HÔTEL & SURF CAMP AGADIR
+                  RÉSIDENCE & SUITES · AGADIR
                 </span>
               </div>
             </div>
@@ -112,10 +112,7 @@ export const Footer: React.FC<FooterProps> = ({
           <p>
             &copy; {new Date().getFullYear()} Résidence ISNI · Appart-Hôtel Agadir. Tous droits réservés.
           </p>
-          <p className="flex items-center gap-1.5">
-            <span>Inspiré de l’univers créatif de</span>
-            <strong className="text-white">fr.desertsurfcamp.com</strong>
-          </p>
+          <p>Votre résidence au cœur d’Agadir</p>
         </div>
 
       </div>

@@ -621,7 +621,7 @@ Thème WordPress sur mesure développé pour l'Appart-Hôtel Résidence ISNI à 
 Avenue Allal Ben Abdellah, Agadir, Maroc.
 
 ## Contenu de l'archive
-- \`style.css\` : Déclaration du thème et styles inspirés de fr.desertsurfcamp.com (fond crème #f2e8df, orange #f05a2d, bleu marine #06306b).
+- \`style.css\` : Déclaration du thème Résidence ISNI et styles personnalisés (fond crème #f2e8df, orange #f05a2d, bleu marine #06306b).
 - \`functions.php\` : Configuration WordPress 7.1.3 + PHP 8.1, menu Réglages > Résidence, CPT \`isni_booking\`, requêtes AJAX sécurisées (nonce + honeypot anti-spam), calcul de prix côté serveur.
 - \`header.php\` & \`footer.php\` : Coquille WordPress qui monte la même application React que le site local.
 - \`assets/theme-app/isni-app.js\` et \`isni-app.css\` : application compilée partagée, pour conserver le même contenu, les mêmes styles et interactions.
